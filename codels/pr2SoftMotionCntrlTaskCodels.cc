@@ -14,3 +14,35 @@
 
 
 
+
+/*------------------------------------------------------------------------
+ * pr2SoftMotionSetTimeScaleCntrl  -  control codel of CONTROL request SetTimeScale
+ *
+ * Description:    
+ * Report: OK
+ *                 S_pr2SoftMotion_WRONG_VALUE
+ *
+ * Returns:    OK or ERROR
+ */
+
+STATUS
+pr2SoftMotionSetTimeScaleCntrl(double *timeScale, int *report)
+{
+  if(*timeScale > 2.0) {
+    SDI_F->timeScale = 2.0;
+    printf("WARN: Wrong timeScale value, set it to 2.0\n");
+    *report = S_pr2SoftMotion_WRONG_VALUE;
+    return OK;
+  }
+  if(*timeScale < 2.0) {
+    SDI_F->timeScale = -2.0;
+    printf("WARN: Wrong timeScale value, set it to -2.0\n");
+    *report = S_pr2SoftMotion_WRONG_VALUE;
+    return OK;
+  }
+  return OK;
+}
+
+
+
+

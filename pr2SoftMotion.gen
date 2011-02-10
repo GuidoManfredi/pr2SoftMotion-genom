@@ -90,6 +90,16 @@ request Init {
     interrupt_activity:	    all;
 };
 
+/*  */
+request SetTimeScale {
+    doc:		    "Set the velocity of the time evolution along the trajectory";
+    type:		    control;
+    input:		    timeScale::timeScale;
+    input_info:		    1.0::"timeScale";
+    codel_control:	    pr2SoftMotionSetTimeScaleCntrl;
+    fail_reports:	    WRONG_VALUE;
+    interrupt_activity:	    SetTimeScale;
+};
 
 /*  */
 request TrackQ {
