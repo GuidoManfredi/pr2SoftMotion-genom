@@ -139,9 +139,7 @@ pr2SoftMotionTrackQStart(PR2SM_TRACK_STR *trackStr, int *report)
 
   switch(trackStr->trackMode) {
   case PR2SM_TRACK_FILE:
-    printf("load file\n");
     currentMotion.load(trackStr->posterName.name, NULL);
-    printf("file loaded\n");
     break;
 
   case PR2SM_TRACK_POSTER:
@@ -162,14 +160,13 @@ pr2SoftMotionTrackQStart(PR2SM_TRACK_STR *trackStr, int *report)
     }
     currentMotion.clear();
     currentMotion.importFromSM_TRAJ_STR(&smTraj);
-    //currentMotion.print();
     break;
   default:
     *report = S_pr2SoftMotion_BAD_MODE;
     return ETHER;
   }
   currentMotion.computeTimeOnTraj();
-  currentMotion.print();
+  //currentMotion.print();
   currTime = 0.0;
   return EXEC;
 }

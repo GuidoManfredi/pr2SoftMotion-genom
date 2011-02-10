@@ -97,6 +97,7 @@ request TrackQ {
     type:		    exec;
     exec_task:		    Main; 
     input:		    posterName::trackStr; 
+    input_info:		    "softMotion_Smoothed_Seg.traj"::"Poster or File name" , PR2SM_TRACK_FILE::"Mode";			    
     posters_input:	    SM_TRAJ_STR;
     codel_start:	    pr2SoftMotionTrackQStart;
     codel_main:		    pr2SoftMotionTrackQMain;
@@ -104,8 +105,6 @@ request TrackQ {
     fail_reports:           NOT_INITIALIZED, BAD_MODE, POSTER_NOT_FOUND, POSTER_READ_ERROR, FILE_NOT_FOUND, ERROR_INIT_POSITION, Q_LIMITED; 
     interrupt_activity:	    TrackQ; 
 };
-
-
 
 /*------------------------------------------------------------
  *	                        Posters
