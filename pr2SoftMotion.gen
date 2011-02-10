@@ -1,0 +1,128 @@
+/*
+ * Copyright (c) 2011 LAAS/CNRS                       --  Feb 2011
+ * All rights reserved.
+ *
+ * Redistribution and use  in source  and binary  forms,  with or without
+ * modification, are permitted provided that the following conditions are
+ * met:
+ *
+ *   1. Redistributions of  source  code must retain the  above copyright
+ *      notice, this list of conditions and the following disclaimer.
+ *   2. Redistributions in binary form must reproduce the above copyright
+ *      notice,  this list of  conditions and the following disclaimer in
+ *      the  documentation  and/or  other   materials provided  with  the
+ *      distribution.
+ *
+ * THIS  SOFTWARE IS PROVIDED BY  THE  COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND  ANY  EXPRESS OR IMPLIED  WARRANTIES,  INCLUDING,  BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES  OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR  PURPOSE ARE DISCLAIMED. IN  NO EVENT SHALL THE COPYRIGHT
+ * HOLDERS OR      CONTRIBUTORS  BE LIABLE FOR   ANY    DIRECT, INDIRECT,
+ * INCIDENTAL,  SPECIAL,  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ * BUT NOT LIMITED TO, PROCUREMENT OF  SUBSTITUTE GOODS OR SERVICES; LOSS
+ * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN  CONTRACT, STRICT LIABILITY, OR
+ * TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
+ * USE   OF THIS SOFTWARE, EVEN   IF ADVISED OF   THE POSSIBILITY OF SUCH
+ * DAMAGE.
+ */
+
+/*------------------------------------------------------------
+ * 
+ *                     --  Module  PR2SOFTMOTION  --
+ * 
+ *  Description:
+ *  Creation date : Thu Feb 10 13:04:35 2011 
+ *  Author: Xavier Broquere
+ * 
+ *------------------------------------------------------------*/
+
+module pr2SoftMotion {
+    number:		    100211;
+    version:		    "1.0";
+    email:		    "openrobots@laas.fr";
+    requires:		    genBasic, genManip, genHum, gbM;
+    codels_requires:	    "softMotion-libs >= 3.4";
+    internal_data:	    PR2SOFTMOTION_STR;
+    lang:		    "c++";
+}; 
+
+/*------------------------------------------------------------
+ *	                   Structures and SDI
+ *------------------------------------------------------------*/
+
+import from genBasic {
+ #include <genBasicStruct.h>
+};
+
+import from genHum {
+ #include <genHumStruct.h>
+};
+
+import from genManip {
+ #include <genManipStruct.h>
+};
+
+
+#include "gbGENOM.h"
+#include <softMotion/softMotionStructGenom.h>
+
+#include "pr2SoftMotionStruct.h"
+
+typedef struct PR2SOFTMOTION_STR {
+    GEN_BOOL isInit;
+    PR2SM_TRACK_STR trackStr;
+    GEN_BOOL motionIsAllowed;
+    double timeScale;
+} PR2SOFTMOTION_STR;
+
+/*------------------------------------------------------------
+ *	                       Requests
+ *------------------------------------------------------------*/
+
+/*  */
+request Init {
+    doc:		    "<some doc>";
+    type:		    init;
+    exec_task:		    Main; 
+    codel_main:		    pr2SoftMotionInitMain;
+    fail_reports:	    CANNOT_INIT_ROS, CANNOT_CREATE_ROS_NODE, CANNOT_SUSCRIBE_TO_TOPIC; 
+    interrupt_activity:	    all;
+};
+
+
+/*  */
+request TrackQ {
+    doc:		    "<some doc>";
+    type:		    exec;
+    exec_task:		    Main; 
+    input:		    posterName::trackStr; 
+    posters_input:	    SM_TRAJ_STR;
+    codel_start:	    pr2SoftMotionTrackQStart;
+    codel_main:		    pr2SoftMotionTrackQMain;
+    codel_end:		    pr2SoftMotionTrackQEnd;
+    fail_reports:           NOT_INITIALIZED, BAD_MODE, POSTER_NOT_FOUND, POSTER_READ_ERROR, FILE_NOT_FOUND, ERROR_INIT_POSITION, Q_LIMITED; 
+    interrupt_activity:	    TrackQ; 
+};
+
+
+
+/*------------------------------------------------------------
+ *	                        Posters
+ *------------------------------------------------------------*/
+
+
+/*------------------------------------------------------------
+ *	                   Execution Tasks
+ *------------------------------------------------------------*/
+
+
+/*  */
+exec_task Main {
+    period:		    PR2SM_PERIOD_TIC;
+    delay:		    1;
+    priority:		    1;
+    stack_size:		    4000000;
+    codel_task_end:	    pr2SoftMotionMainEnd;
+    codel_task_main:	    pr2SoftMotionMainPerm;
+};

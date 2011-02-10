@@ -1,0 +1,14 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+genomfile=pr2SoftMotion.gen
+genomflags=-t 
+cppflags= -I/home/xbroquer/openrobots/include -I/home/xbroquer/openrobots/include/genBasic -I/home/xbroquer/openrobots/include -I/home/xbroquer/openrobots/include/genManip -I/home/xbroquer/openrobots/include/genBasic -I/home/xbroquer/openrobots/include -I/home/xbroquer/openrobots/include/genHum -I/home/xbroquer/openrobots/include/gbM -I/home/xbroquer/openrobots/include
+
+Name: pr2SoftMotion
+Description: pr2SoftMotion Genom module
+Version: @PACKAGE_VERSION@
+Requires: genom >= 2.6 , genManip, genHum, genBasic
+Libs: -Wl,-rpath,${libdir} -L${libdir} -lpr2SoftMotionClient
+Cflags: -I${includedir} -I${includedir}/pr2SoftMotion

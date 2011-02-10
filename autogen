@@ -1,0 +1,22 @@
+#! /usr/bin/perl -w
+use strict;
+
+my $user = "configure.ac.user";
+
+# Check for a few files (Genom -> OpenGenom migration)
+if ( ! -f $user || ! -f "local.mk.in" || ! -f "codels/Makefile.in" ) {
+    print "You're missing one of configure.ac.user, autoconf/local.mk.in, codels/Makefile.in\n";
+    print "you may need to run genom -i\n";
+    exit
+}
+
+print "
+Creating build environment ...
+  * Running autoconf\n";
+exit 1 if system("cd autoconf && autoconf -o ../configure");
+
+print "
+
+If you already have a build of this module, do not forget to
+reconfigure (for instance by running ./config.status --recheck)\n\n";
+

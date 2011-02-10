@@ -1,0 +1,163 @@
+
+#
+# Copyright (c) 2003 LAAS/CNRS                        --  Mon Aug 25 2003
+# All rights reserved.
+#
+# Redistribution  and  use in source   and binary forms,  with or without
+# modification, are permitted provided that  the following conditions are
+# met:
+#
+#   1. Redistributions  of  source code must  retain  the above copyright
+#      notice, this list of conditions and the following disclaimer.
+#   2. Redistributions in binary form must  reproduce the above copyright
+#      notice,  this list of  conditions and  the following disclaimer in
+#      the  documentation   and/or  other  materials   provided with  the
+#      distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY THE  AUTHOR AND CONTRIBUTORS ``AS IS'' AND
+# ANY  EXPRESS OR IMPLIED WARRANTIES, INCLUDING,  BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES   OF MERCHANTABILITY AND  FITNESS  FOR  A PARTICULAR
+# PURPOSE ARE DISCLAIMED.  IN NO  EVENT SHALL THE AUTHOR OR  CONTRIBUTORS
+# BE LIABLE FOR ANY DIRECT, INDIRECT,  INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING,  BUT  NOT LIMITED TO, PROCUREMENT  OF
+# SUBSTITUTE  GOODS OR SERVICES;  LOSS   OF  USE,  DATA, OR PROFITS;   OR
+# BUSINESS  INTERRUPTION) HOWEVER CAUSED AND  ON ANY THEORY OF LIABILITY,
+# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+# OTHERWISE) ARISING IN ANY WAY OUT OF THE  USE OF THIS SOFTWARE, EVEN IF
+# ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+
+host_cpu=	@host_cpu@
+
+abs_top_srcdir=   @abs_top_srcdir@
+abs_top_builddir= @abs_top_builddir@
+module=		pr2SoftMotion
+codelsdir=	codels
+serverdir=	server
+autoconfdir=	autoconf
+
+prefix=		@prefix@
+exec_prefix=	@exec_prefix@
+bindir=		@bindir@
+libdir=		@libdir@
+includedir=	@includedir@/pr2SoftMotion
+datarootdir=	@datarootdir@
+datadir=	@datadir@/modules
+
+# --- Programs ----------------------------------------------------------
+
+LANG_CXX=	@LANG_CXX@
+
+CPP=		@CPP@
+PURIFY=
+SED=		sed
+MKDEP=		@MKDEP@
+MKINSTALLDIRS=  $(top_srcdir)/autoconf/mkinstalldirs
+
+LIBTOOL=        @LIBTOOL@
+CC=		@CC@
+LTCC=           $(LIBTOOL) --tag=CC --mode=compile $(CC)
+ifeq ($(LANG_CXX),yes)
+CXX=		@CXX@
+LTCXX=		$(LIBTOOL) --tag=CXX --mode=compile $(CXX)
+endif
+
+ifeq ($(LANG_CXX),yes)
+LTLD=           $(LIBTOOL) --tag=CXX --mode=link $(PURIFY) $(CXX)
+else
+LTLD=           $(LIBTOOL) --tag=CC --mode=link $(PURIFY) $(CC)
+endif
+LTRM=           $(LIBTOOL) --mode=clean rm -f
+LTINSTALL=	$(LIBTOOL) --mode=install $(INSTALL)
+
+INSTALL_DATA=	$(INSTALL) -m 644
+
+# --- Libraries ---------------------------------------------------------
+
+# executables or modules
+MODULE_BIN=	pr2SoftMotion$(BINEXT)
+INIT_BIN=	pr2SoftMotionSendInitRqst$(BINEXT)
+TEST_BIN=	pr2SoftMotionTest$(BINEXT)
+
+# client libraries. These are versioned using the abi_version in the .gen
+ABI_VERSION_INFO=	@ABI_VERSION_INFO@
+CLIENT_LIB=		libpr2SoftMotionClient$(LIBEXT)
+TCLCLIENT_LIB=		libpr2SoftMotionTclServ$(LIBEXT)
+OPENPRSCLIENT_LIB=	libpr2SoftMotionOpenprs$(LIBEXT)
+TCLSERVCLIENT_LIB=  libpr2SoftMotionTclservClient$(LIBEXT)
+
+# Use that to link to our client library
+MY_CLIENT_LIB=          $(GENOM_LIBS) $(abs_top_builddir)/server/$(OBJDIR)/$(CLIENT_LIB)
+
+# libtool 'helper' libs -- static archives. Not installed
+MODULE_LIB=		libpr2SoftMotionServer.la
+USER_LIB=		libpr2SoftMotionCodels.la
+POSTERWRITE_LIB=	libpr2SoftMotionPosterWrite.la
+
+# --- Servers -----------------------------------------------------------
+
+GENBASIC_CFLAGS   = 	@GENBASIC_CFLAGS@
+GENBASIC_LIBS     = 	@GENBASIC_LIBS@
+GENMANIP_CFLAGS   = 	@GENMANIP_CFLAGS@
+GENMANIP_LIBS     = 	@GENMANIP_LIBS@
+GENHUM_CFLAGS   = 	@GENHUM_CFLAGS@
+GENHUM_LIBS     = 	@GENHUM_LIBS@
+GBM_CFLAGS   = 	@GBM_CFLAGS@
+GBM_LIBS     = 	@GBM_LIBS@
+SOFTMOTION_LIBS_CFLAGS   = 	@SOFTMOTION_LIBS_CFLAGS@
+SOFTMOTION_LIBS_LIBS     = 	@SOFTMOTION_LIBS_LIBS@
+
+# --- Libraries required ------------------------------------------------
+
+SERVERS_CLIENT_LIB=   $(GENMANIP_LIBS) $(GENHUM_LIBS) $(GENBASIC_LIBS)
+SERVERS_ENDIAN_LIB=  $(SERVERS_CLIENT_LIB)
+
+CODEL_LIB= $(SOFTMOTION_LIBS_LIBS)
+
+
+# --- Flags -------------------------------------------------------------
+
+OSAPI?=		@OSAPI@
+
+
+ENDIANNESS=	@ENDIANNESS@
+
+GENOM_DEFINES=  
+GENOM_INCLUDES=  $(GENBASIC_CFLAGS) $(GENMANIP_CFLAGS) $(GENHUM_CFLAGS) $(GBM_CFLAGS) $(SOFTMOTION_LIBS_CFLAGS)
+# Keep this until all codel have removed their #ifndef UNIX... stuff.
+CPPFLAGS=	@CPPFLAGS@ -DUNIX
+CFLAGS=		@CFLAGS@
+LDFLAGS=	@LDFLAGS@
+
+OBJDIR=		$(OSAPI)-obj
+
+LIBMATH=        @LIBMATH@
+
+RTAI_INC=	@RTAI_INC@
+KERNEL_INC=	@KERNEL_INC@
+
+XENO_CONFIG=	@XENO_CONFIG@
+
+TCL_CPPFLAGS=	@TCL_CPPFLAGS@
+TCL_LDFLAGS=	@TCL_LDFLAGS@ @TCL_LIB_FLAG@ @TCL_LIBS@
+
+# TRANSGEN_CFLAGS = @TRANSGEN_CFLAGS@
+# TRANSGEN_LIBS = @TRANSGEN_LIBS@
+
+# OPENPRS_CFLAGS  = @OPENPRS_CFLAGS@
+# OPENPRS_LIBS    = @OPENPRS_LIBS@
+
+# TCLSERV_CLIENT_LIB_CFLAGS = @TCLSERV_CLIENT_LIB_CFLAGS@
+# TCLSERV_CLIENT_LIB_LIBS = @TCLSERV_CLIENT_LIB_LIBS@
+
+# TCLSERV_CLIENT_LIB_OTHER_CFLAGS=  
+# TCLSERV_CLIENT_LIB_OTHER_LIBS=  
+
+GENOM_CFLAGS=	@GENOM_CFLAGS@
+GENOM_LIBS=	@GENOM_LIBS@
+
+EXTRA_INCLUDES=	@EXTRA_INCLUDES@
+EXTRA_LIBS=	@EXTRA_LIBS@
+
+-include $(top_builddir)/local.mk
+

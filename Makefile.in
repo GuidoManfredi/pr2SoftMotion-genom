@@ -1,0 +1,121 @@
+
+
+
+#  WARNING 
+#  WARNING 	DO NOT CHANGE ANYTHING IN THIS FILE
+#  WARNING 	it is replaced at each module generation
+#  WARNING
+#  WARNING      If you want to install additional files, use the user-install
+#  WARNING	target in codels/Makefile.in (see the comments in this file)
+#  WARNING 
+
+
+
+
+
+top_builddir=.
+top_srcdir=	@top_srcdir@
+srcdir=		@srcdir@
+
+INSTALL=	@INSTALL@
+
+dist_name=	@PACKAGE_NAME@-@PACKAGE_VERSION@
+
+include $(top_builddir)/config.mk
+
+SUBDIRS= \
+	$(serverdir) @EXTRA_SUBDIRS@ \
+	$(codelsdir)
+
+config_files = \
+	Makefile \
+	$(addsuffix /Makefile,$(SUBDIRS))
+
+# Generic targets
+.PHONY: all install depend
+all install depend:: $(config_files)
+	$(MAKE) $@-$(OSAPI)
+
+.PHONY: clean
+clean:
+	$(MAKE) $@-$(OSAPI)
+
+.PHONY: distclean
+distclean:
+	-$(MAKE) $@-$(OSAPI)
+	rm -f Makefile libtool config.log config.status pr2SoftMotion.pc pr2SoftMotion-oprs.pc local.mk config.mk
+
+.PHONY:	dist
+dist:
+	[ -d $(top_srcdir)/.git ] || \
+	(echo "make dist only works with git" ; exit 2 )
+	(cd ${top_srcdir}; \
+	 git archive --format=tar --prefix=$(dist_name)/ $(dist_name) | \
+	 gzip -c - ) > $(dist_name).tar.gz
+
+# GenoM flags
+include $(top_srcdir)/$(autoconfdir)/genom.mk
+
+
+# --- Directory recursion -----------------------------------------------
+
+# OS-specific targets :
+# WARNING: because of $*, $(make_subdirs_osapi) can only be used within 
+# target including "%-<osapi>" in its name.
+
+make_subdirs_osapi=\
+  for d in ${SUBDIRS}; do (cd $$d; ${MAKE} OSAPI=$${OSAPI} $*) || exit 2; done
+
+%-posix:
+	@OSAPI=posix; $(make_subdirs_osapi)
+
+%-xenomai:
+	@OSAPI=xenomai; $(make_subdirs_osapi)
+
+%-rtai:
+	@OSAPI=rtai;  $(make_subdirs_osapi)
+	@OSAPI=posix; $(make_subdirs_osapi)
+
+# --- genom -------------------------------------------------------------
+regen-user: standalone-regen-user
+	@if test $(top_srcdir)/configure -nt ./config.status; then \
+	    ./config.status --recheck; \
+	fi
+	@./config.status
+
+regen: standalone-regen
+	@if test $(top_srcdir)/configure -nt ./config.status; then \
+	    ./config.status --recheck; \
+	fi
+	@./config.status
+	${MAKE} depend
+
+# --- pkgconfig ---------------------------------------------------------
+ALL_PKGCONFIG := pr2SoftMotion.pc $(addsuffix .pc,@EXTRA_PKGCONFIG@)
+#ALL_PKGCONFIG += pr2SoftMotion-oprs.pc
+#ALL_PKGCONFIG += pr2SoftMotion-tclserv_client.pc
+install:: $(ALL_PKGCONFIG)
+	$(MKINSTALLDIRS) ${DESTDIR}$(libdir)/pkgconfig
+	$(INSTALL) $(ALL_PKGCONFIG) ${DESTDIR}$(libdir)/pkgconfig
+
+# --- autoconf/autoheader -----------------------------------------------
+
+LIBTOOL_DEPS=   @LIBTOOL_DEPS@
+
+./config.status: $(top_srcdir)/configure
+	./config.status --recheck
+
+libtool: $(LIBTOOL_DEPS)
+	./config.status --recheck
+
+config.mk: $(top_srcdir)/$(autoconfdir)/config.mk.in
+	CONFIG_FILES='$@:$<' CONFIG_HEADERS= ./config.status
+
+# config_files contains Makefile
+# If we do not disable this in regen* targets, --recheck
+# gets called before the regen
+ifeq ($(findstring $(MAKECMDGOALS),regen),)
+$(config_files): %: $(top_srcdir)/%.in config.status
+	CONFIG_FILES=$@ CONFIG_HEADERS= ./config.status
+endif
+
