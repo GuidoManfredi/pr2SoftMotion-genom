@@ -46,14 +46,21 @@
 #include "softMotion/softMotionStruct.h"
 #include "softMotion/softMotionStructGenom.h"
 
+#include "Pr2Pose.h"
+
 static POSTER_ID pr2Trackposter = NULL; 
 static SM_TRAJ currentMotion; /* the softMotion trajectory */
 static double currTime; /* the time parameter along the trajectory */
 static SM_COND timeScaleCond; /* the kinematic state of the time parameter */
 
-static double pr2Jnts[PR2SM_NBJOINT]; /* the target */
+static Pr2Pose* robotControl= NULL; /* the position sender */
+static double pr2JntsPos[PR2SM_NBJOINT]; /* the target position */
+static double pr2JntsVel[PR2SM_NBJOINT]; /* the target velocity */
+static double pr2JntsAcc[PR2SM_NBJOINT]; /* the target acceleration */
 
 static int pr2SMComputeSmoothedTimeScale(double timeScale, SM_LIMITS limitsGoto, SM_COND* timeScaleCond);
+
+
 
 /*------------------------------------------------------------------------
  *
@@ -105,12 +112,24 @@ pr2SoftMotionMainPerm(int *report)
 ACTIVITY_EVENT
 pr2SoftMotionInitMain(int *report)
 {
+  char* argv[] = { "pr2SoftMotionNode",
+                    "kikou",
+                    NULL};
+  int argc = 2;
+
   SDI_F->timeScale = 1.0;
   SDI_F->motionIsAllowed = GEN_TRUE;
 
-  /* Create here the ros node */
-  /* .........................*/
+  //Ros node creation
+  printf("Init ros node ...\n");
+  ros::init(argc, argv, "pr2SoftMotionNode");
+  printf("...Init ros node OK\n");
+  ros::NodeHandle nh;
 
+  //Pr2Pose class instantiat
+  printf("New pr2Pose class ...\n");
+  robotControl= new Pr2Pose(nh);
+  printf("...New pr2Pose class OK\n");
   SDI_F->isInit = GEN_TRUE;
   return ETHER;
 }
@@ -168,6 +187,11 @@ pr2SoftMotionTrackQStart(PR2SM_TRACK_STR *trackStr, int *report)
   currentMotion.computeTimeOnTraj();
   //currentMotion.print();
   currTime = 0.0;
+
+  std::vector<SM_COND> cond;
+  currentMotion.getMotionCond(currTime, cond);
+
+
   return EXEC;
 }
 
@@ -181,10 +205,13 @@ pr2SoftMotionTrackQMain(PR2SM_TRACK_STR *trackStr, int *report)
     std::vector<SM_COND> cond;
     currentMotion.getMotionCond(currTime, cond);
     for (int i = 0; i < PR2SM_NBJOINT; i++) {
-      pr2Jnts[i] = cond[i].x;
+      pr2JntsPos[i] = cond[i].x;
+      pr2JntsVel[i] = cond[i].v;
+      pr2JntsAcc[i] = cond[i].a;
     }
+
     /* Send here the new target position */
-    /* ..................................*/
+    robotControl->sendTrajectory(pr2JntsPos, pr2JntsVel, pr2JntsAcc);
 
 
     /* Compute the next timeStep */    

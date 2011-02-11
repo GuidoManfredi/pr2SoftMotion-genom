@@ -45,6 +45,7 @@ module pr2SoftMotion {
     codels_requires:	    "softMotion-libs >= 3.4";
     internal_data:	    PR2SOFTMOTION_STR;
     lang:		    "c++";
+   // clock_rate:               1000;
 }; 
 
 /*------------------------------------------------------------

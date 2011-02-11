@@ -31,8 +31,8 @@
 #ifndef _PR2SMCONST_H
 #define _PR2SMCONST_H
 
-#define PR2SM_PERIOD_TIC 1 /* 1 tic = 10 ms */
-#define PR2SM_PERIOD 0.01  /* ms */
+#define PR2SM_PERIOD_TIC 10 /* 1 tic = 10 ms */
+#define PR2SM_PERIOD 0.1  /* s */
 
 #define PR2SM_NBJOINT 22
 

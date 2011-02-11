@@ -22,10 +22,35 @@ codels_src = \
 	pr2SoftMotionCntrlTaskCodels.cc
 
 # Add extra flags for the preprocessor (external libraries, ...)
-# EXTRA_INCLUDES +=
+EXTRA_INCLUDES += \
+  -I/opt/ros/cturtle/ros/core/roscpp/include \
+  -I/opt/ros/cturtle/ros/core/roslib/include \
+  -I/opt/ros/cturtle/ros/core/rosconsole/include \
+  -I/opt/ros/cturtle/ros/3rdparty/xmlrpcpp/src \
+  -I/opt/ros/cturtle/ros/core/roslib/msg_gen/cpp/include \
+  -I/opt/ros/cturtle/stacks/common_msgs/geometry_msgs/msg_gen/cpp/include \
+  -I/opt/ros/cturtle/stacks/pr2_controllers/pr2_controllers_msgs/msg_gen/cpp/include \
+  -I/opt/ros/cturtle/stacks/common_msgs/actionlib_msgs/msg_gen/cpp/include \
+  -I/opt/ros/cturtle/stacks/common/actionlib/include \
+  -I/opt/ros/cturtle/stacks/common/actionlib/msg/cpp \
+  -I/opt/ros/cturtle/stacks/common_msgs/actionlib_msgs/msg_gen/cpp/include \
+  -I/opt/ros/cturtle/stacks/common_msgs/nav_msgs/msg_gen/cpp/include \
+  -I/opt/ros/cturtle/stacks/pr2_controllers/trajectory_msgs/msg/cpp \
+  -I/opt/ros/cturtle/stacks/pr2_controllers/trajectory_msgs/msg_gen/cpp/include
+
 #
 # Add extra link flags (external libraries, ...)
-# EXTRA_LIBS +=
+EXTRA_LIBS += \
+	-Wl,-rpath /opt/ros/cturtle/ros/core/roscpp/lib \
+	-Wl,-rpath /opt/ros/cturtle/ros/core/rosconsole/lib \
+	-Wl,-rpath /opt/ros/cturtle/ros/core/roslib/lib \
+  -Wl,-rpath,/opt/ros/cturtle/stacks/common/actionlib/lib \
+  -Wl,-rpath,/opt/ros/cturtle/stacks/common/actionlib/lib \
+	-L/opt/ros/cturtle/ros/core/roscpp/lib -lros \
+  -L/opt/ros/cturtle/stacks/common/actionlib/lib -lactionlib
+  
+
+
 #
 # Install files here (any header that is not included in the .gen for instance)
 # Files that are included in the GenoM file are automatically installed
