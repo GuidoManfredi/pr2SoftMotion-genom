@@ -90,7 +90,7 @@ AC_SUBST(GENOM_CFLAGS)
 AC_SUBST(GENOM_LIBS)
 
 dnl Tcl
-ifelse([yes], [yes], [ROBOT_LIB_TCL(/usr/lib/tcl8.5/)], [])
+ifelse([yes], [yes], [ROBOT_LIB_TCL(/usr/lib64/)], [])
 
 dnl transgen and oprs
 ifelse([no], [yes], [

@@ -75,7 +75,9 @@ typedef struct PR2SOFTMOTION_STR {
     PR2SM_TRACK_STR trackStr;
     GEN_BOOL motionIsAllowed;
     double timeScale;
+    PR2SM_QSTR qGoto;
 } PR2SOFTMOTION_STR;
+
 
 /*------------------------------------------------------------
  *	                       Requests
@@ -117,6 +119,17 @@ request TrackQ {
     interrupt_activity:	    TrackQ; 
 };
 
+request GotoQ {
+    doc:		    "<some doc>";
+    type:		    exec;
+    exec_task:		    Main; 
+    input:		    qGoto::qGoto; 
+    codel_start:	    pr2SoftMotionGotoQStart;
+    codel_main:		    pr2SoftMotionGotoQMain;
+    codel_end:		    pr2SoftMotionGotoQEnd;
+    fail_reports:           NOT_INITIALIZED, SOFTMOTION_ERROR; 
+    interrupt_activity:	    GotoQ; 
+};
 /*------------------------------------------------------------
  *	                        Posters
  *------------------------------------------------------------*/

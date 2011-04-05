@@ -43,4 +43,29 @@ typedef struct PR2SM_TRACK_STR {
   PR2SM_TRACK_MODE_ENUM trackMode;
 } PR2SM_TRACK_STR;
 
+typedef struct PR2SM_QSTR{
+  double torso;
+  double head_pan;
+  double head_tilt;
+  double laser_tilt;
+  double r_shoulder_pan;
+  double r_shoulder_lift;
+  double r_upper_arm_roll;
+  double r_elbow_flex;
+  double r_forearm_roll;
+  double r_wrist_flex;
+  double r_writ_roll;
+  double r_gripper;
+  double r_gripper_false;
+  double l_shoulder_pan;
+  double l_shoulder_lift;
+  double l_upper_arm_roll;
+  double l_elbow_flex;
+  double l_forearm_roll;
+  double l_wrist_flex;
+  double l_wrist_roll;
+  double l_gripper;
+  double l_gripper_false;
+} PR2SM_QSTR;
+
 #endif

@@ -36,18 +36,20 @@ EXTRA_INCLUDES += \
   -I/opt/ros/cturtle/stacks/common_msgs/actionlib_msgs/msg_gen/cpp/include \
   -I/opt/ros/cturtle/stacks/common_msgs/nav_msgs/msg_gen/cpp/include \
   -I/opt/ros/cturtle/stacks/pr2_controllers/trajectory_msgs/msg/cpp \
-  -I/opt/ros/cturtle/stacks/pr2_controllers/trajectory_msgs/msg_gen/cpp/include
-
+  -I/opt/ros/cturtle/stacks/pr2_controllers/trajectory_msgs/msg_gen/cpp/include \
+  -I/u/gmanfred/ros_overlay/sandbox/pr2_soft_controller/include \
+  -I/u/gmanfred/ros_overlay/sandbox/pr2_soft_controller/msg_gen/cpp/include \
+  -I/opt/ros/cturtle/ros/std_msgs/include \
+  -I/opt/ros/cturtle/ros/std_msgs/msg_gen/cpp/include 
 #
 # Add extra link flags (external libraries, ...)
 EXTRA_LIBS += \
 	-Wl,-rpath /opt/ros/cturtle/ros/core/roscpp/lib \
 	-Wl,-rpath /opt/ros/cturtle/ros/core/rosconsole/lib \
 	-Wl,-rpath /opt/ros/cturtle/ros/core/roslib/lib \
-  -Wl,-rpath,/opt/ros/cturtle/stacks/common/actionlib/lib \
-  -Wl,-rpath,/opt/ros/cturtle/stacks/common/actionlib/lib \
+	-Wl,-rpath,/opt/ros/cturtle/stacks/common/actionlib/lib \
+	-Wl,-rpath,/opt/ros/cturtle/stacks/common/actionlib/lib \
 	-L/opt/ros/cturtle/ros/core/roscpp/lib -lros \
-  -L/opt/ros/cturtle/stacks/common/actionlib/lib -lactionlib
   
 
 
