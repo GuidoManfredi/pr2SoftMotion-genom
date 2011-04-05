@@ -57,11 +57,12 @@ pr2_soft_controller::SM_TRAJ_STR_ROS smTrajROS; //the last sent trajectory
 static double currTime; /* the time parameter along the trajectory */
 static SM_COND timeScaleCond; /* the kinematic state of the time parameter */
 
+static ros::Subscriber joint_state_listener;
 static ros::Publisher traj_pub;
 static ros::Publisher timeScale_pub;
 static ros::NodeHandle* nh;
 
-
+static int currentTrajId;
 
 void doubles2QStr(double* src, PR2SM_QSTR& dst);
 void QStr2doubles(PR2SM_QSTR& dst, double* src);
@@ -106,7 +107,7 @@ pr2SoftMotionMainPerm(int *report)
  * Description: 
  *
  * Reports:      OK
- *              S_pr2SoftMotion_CANNOT_INIT_ROS
+ *              S_pr2SoftMotion_CANNOT_INIT_ReS
  *              S_pr2SoftMotion_CANNOT_CREATE_ROS_NODE
  *              S_pr2SoftMotion_CANNOT_SUSCRIBE_TO_TOPIC
  */
@@ -424,7 +425,7 @@ int smConvertSM_MOTIONtoSM_TRAJ( SM_MOTION_MONO motion[], int nbJoints, SM_TRAJ 
 ACTIVITY_EVENT
 pr2SoftMotionGotoQStart(PR2SM_QSTR *qGoto, int *report)
 {
-  /* ... add your code here ... */
+  
   return EXEC;
 }
 
@@ -433,7 +434,8 @@ pr2SoftMotionGotoQStart(PR2SM_QSTR *qGoto, int *report)
 ACTIVITY_EVENT
 pr2SoftMotionGotoQMain(PR2SM_QSTR *qGoto, int *report)
 {
-  /* ... add your code here ... */
+  double* qGotod= (double*)malloc(PR2SM_NBJOINT*sizeof(double));
+  QStr2double(qGoto, qGotod);
 
   SM_TRAJ traj;
   SM_MOTION_MONO motion[PR2SM_NBJOINT];
@@ -443,13 +445,15 @@ pr2SoftMotionGotoQMain(PR2SM_QSTR *qGoto, int *report)
   double vect_A_max[PR2SM_NBJOINT];
   double vect_V_max[PR2SM_NBJOINT];
 
+
+
   memset(motion, 0, PR2SM_NBJOINT*sizeof(SM_MOTION_MONO));
   for(int i=0; i<PR2SM_NBJOINT; i++) {
-    motion[i].IC.x =  1265/* Tu mets la position actuelle du robot */ ;
+    motion[i].IC.x =   ;
     motion[i].IC.v = 0.0 ;
     motion[i].IC.a = 0.0 ;
 
-    motion[i].FC.x =  154  /* Tu mets la position target du robot */  ;
+    motion[i].FC.x = qGotod[i]   ;
     motion[i].FC.v = 0.0 ;
     motion[i].FC.a = 0.0 ;
 
@@ -462,7 +466,41 @@ pr2SoftMotionGotoQMain(PR2SM_QSTR *qGoto, int *report)
     *report = S_pr2SoftMotion_SOFTMOTION_ERROR;
     return ETHER;
   }
+
   smConvertSM_MOTIONtoSM_TRAJ(motion, PR2SM_NBJOINT, traj, report);
+
+
+  SM_TRAJ_STR smTraj;
+  
+  traj.convertToSM_TRAJ_STR(smTraj);
+
+  // copy of the softmotion trajectory into the ros trajectory 
+  smTrajROS.trajId= smTraj.trajId;
+  smTrajROS.nbAxis= smTraj.nbAxis;
+  smTrajROS.timePreserved= smTraj.timePreserved;
+  smTrajROS.qStart.resize(smTrajROS.nbAxis);
+  smTrajROS.qGoal.resize(smTrajROS.nbAxis);
+  smTrajROS.traj.resize(smTrajROS.nbAxis);
+  for(int i=0; i<smTraj.nbAxis; ++i){
+      smTrajROS.qStart[i] = smTraj.qStart[i];
+      smTrajROS.qGoal[i] = smTraj.qGoal[i];
+      smTrajROS.traj[i].nbSeg= smTraj.traj[i].nbSeg;
+      smTrajROS.traj[i].unsused= smTraj.traj[i].unsused;
+      smTrajROS.traj[i].seg.resize(smTrajROS.traj[i].nbSeg);
+     for(int j=0; j<smTraj.traj[i].nbSeg; ++j){
+        smTrajROS.traj[i].seg[j].lpId= smTraj.traj[i].seg[j].lpId;
+        smTrajROS.traj[i].seg[j].unused= smTraj.traj[i].seg[j].unused;
+        smTrajROS.traj[i].seg[j].timeOnTraj= smTraj.traj[i].seg[j].timeOnTraj;
+        smTrajROS.traj[i].seg[j].time= smTraj.traj[i].seg[j].time;
+        smTrajROS.traj[i].seg[j].ic_a= smTraj.traj[i].seg[j].ic_a;
+        smTrajROS.traj[i].seg[j].ic_v= smTraj.traj[i].seg[j].ic_v;
+        smTrajROS.traj[i].seg[j].ic_x= smTraj.traj[i].seg[j].ic_x;
+        smTrajROS.traj[i].seg[j].jerk= smTraj.traj[i].seg[j].jerk;
+      }
+  }
+
+  traj_pub.publish(smTrajROS);
+
 
   // faut peut etre changer l'id de la traj */
 
@@ -480,58 +518,3 @@ pr2SoftMotionGotoQEnd(PR2SM_QSTR *qGoto, int *report)
   /* ... add your code here ... */
   return ETHER;
 }
-
-void doubles2QStr(double* src, PR2SM_QSTR* dst)
-{
-  dst->torso= src[0];
-  dst->head_pan= src[1];
-  dst->head_tilt= src[2];
-  dst->laser_tilt= src[3];
-  dst->r_shoulder_pan= src[4];
-  dst->r_shoulder_lift= src[5];
-  dst->r_upper_arm_roll= src[6];
-  dst->r_elbow_flex= src[7];
-  dst->r_forearm_roll= src[8];
-  dst->r_wrist_flex= src[9];
-  dst->r_writ_roll= src[10];
-  dst->r_gripper= src[11];
-  dst->r_gripper_false= src[12];
-  dst->l_shoulder_pan= src[13];
-  dst->l_shoulder_lift= src[14];
-  dst->l_upper_arm_roll= src[15];
-  dst->l_elbow_flex= src[16];
-  dst->l_forearm_roll= src[17];
-  dst->l_wrist_flex= src[18];
-  dst->l_wrist_roll= src[19];
-  dst->l_gripper= src[20];
-  dst->l_gripper_false= src[21];
-}
-
-void QStr2doubles(PR2SM_QSTR* src, double* dst)
-{
-  dst[0]= src->torso;
-  dst[1]= src->head_pan;
-  dst[2]= src->head_tilt;
-  dst[3]= src->laser_tilt;
-  dst[4]= src->r_shoulder_pan;
-  dst[5]= src->r_shoulder_lift;
-  dst[6]= src->r_upper_arm_roll;
-  dst[7]= src->r_elbow_flex;
-  dst[8]= src->r_forearm_roll;
-  dst[9]= src->r_wrist_flex;
-  dst[10]= src->r_writ_roll;
-  dst[11]= src->r_gripper;
-  dst[12]= src->r_gripper_false;
-  dst[13]= src->l_shoulder_pan;
-  dst[14]= src->l_shoulder_lift;
-  dst[15]= src->l_upper_arm_roll;
-  dst[16]= src->l_elbow_flex;
-  dst[17]= src->l_forearm_roll;
-  dst[18]= src->l_wrist_flex;
-  dst[19]= src->l_wrist_roll;
-  dst[20]= src->l_gripper;
-  dst[21]= src->l_gripper_false;
-}
-
-
-
