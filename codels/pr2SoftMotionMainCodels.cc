@@ -403,7 +403,7 @@ int smConvertSM_MOTIONtoSM_TRAJ( SM_MOTION_MONO motion[], SM_TRAJ &traj, int *re
   }
   traj.computeTimeOnTraj();
 
-
+  return 0;
 }
 
 
