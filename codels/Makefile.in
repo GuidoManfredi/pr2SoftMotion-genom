@@ -30,6 +30,7 @@ EXTRA_INCLUDES += \
   -I/opt/ros/cturtle/ros/core/roslib/msg_gen/cpp/include \
   -I/opt/ros/cturtle/stacks/common_msgs/geometry_msgs/msg_gen/cpp/include \
   -I/opt/ros/cturtle/stacks/pr2_controllers/pr2_controllers_msgs/msg_gen/cpp/include \
+  -I/opt/ros/cturtle/stacks/common_msgs/sensor_msgs/msg_gen/cpp/include \
   -I/opt/ros/cturtle/stacks/common_msgs/actionlib_msgs/msg_gen/cpp/include \
   -I/opt/ros/cturtle/stacks/common/actionlib/include \
   -I/opt/ros/cturtle/stacks/common/actionlib/msg/cpp \

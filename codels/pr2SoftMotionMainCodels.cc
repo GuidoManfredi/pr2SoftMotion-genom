@@ -42,6 +42,7 @@
 #include "ros/ros.h"
 #include "pr2_soft_controller/SM_TRAJ_STR_ROS.h"
 #include "std_msgs/Float64.h"
+#include "sensor_msgs/JointState.h"
 
 #include "server/pr2SoftMotionHeader.h"
 
@@ -66,6 +67,7 @@ static int currentTrajId;
 
 void doubles2QStr(double* src, PR2SM_QSTR& dst);
 void QStr2doubles(PR2SM_QSTR& dst, double* src);
+void savePoseCB(const sensor_msgs::JointStateConstPtr& msg);
 
 int setMaxVelVect();
 
@@ -480,7 +482,7 @@ ACTIVITY_EVENT
 pr2SoftMotionGotoQMain(PR2SM_QSTR *qGoto, int *report)
 {
   double* qGotod= (double*)malloc(PR2SM_NBJOINT*sizeof(double));
-  QStr2double(qGoto, qGotod);
+  QStr2doubles(qGoto, qGotod);
 
   SM_TRAJ traj;
   SM_MOTION_MONO motion[PR2SM_NBJOINT];
@@ -508,10 +510,9 @@ pr2SoftMotionGotoQMain(PR2SM_QSTR *qGoto, int *report)
 
   smConvertSM_MOTIONtoSM_TRAJ(motion, PR2SM_NBJOINT, traj, report);
 
-
   SM_TRAJ_STR smTraj;
   
-  traj.convertToSM_TRAJ_STR(smTraj);
+  traj.convertToSM_TRAJ_STR(&smTraj);
 
   // copy of the softmotion trajectory into the ros trajectory 
   smTrajROS.trajId= smTraj.trajId;
