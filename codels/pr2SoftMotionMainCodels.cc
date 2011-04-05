@@ -309,18 +309,18 @@ void QStr2doubles(PR2SM_QSTR* src, double* dst)
 }
 
 
-int smConvertSM_MOTIONtoSM_TRAJ( SM_MOTION_MONO motion[], SM_TRAJ &traj, int *report) {
+int smConvertSM_MOTIONtoSM_TRAJ( SM_MOTION_MONO motion[], int nbJoints, SM_TRAJ &traj, int *report) {
   double criticalLength;
     SM_LIMITS limitsGoto;
-  int TrajectoryType[PR2SM_NBJOINT];
-  SM_TIMES T_Jerk[PR2SM_NBJOINT];
+  int TrajectoryType[nbJoints];
+  SM_TIMES T_Jerk[nbJoints];
   double maxTime = 0.0;
   double sum = 0.0;
   double maxAxis = 0;
   SM_STATUS resp;
-  SM_COND IC[PR2SM_NBJOINT][SM_NB_SEG];
-  double  Time[PR2SM_NBJOINT][SM_NB_SEG];
-  double  Jerk[PR2SM_NBJOINT][SM_NB_SEG];
+  SM_COND IC[nbJoints][SM_NB_SEG];
+  double  Time[nbJoints][SM_NB_SEG];
+  double  Jerk[nbJoints][SM_NB_SEG];
   SM_SEG seg;
   std::vector<SM_SEG> traj_i;
   std::vector<double> I(3);
@@ -331,7 +331,7 @@ int smConvertSM_MOTIONtoSM_TRAJ( SM_MOTION_MONO motion[], SM_TRAJ &traj, int *re
   std::vector<double> v(1);
   std::vector<double> x(1);
 
-  for (int i = 0; i < PR2SM_NBJOINT; i++)
+  for (int i = 0; i < nbJoints; i++)
     {
 
       I[0] = motion[i].IC.a;
@@ -389,7 +389,7 @@ int smConvertSM_MOTIONtoSM_TRAJ( SM_MOTION_MONO motion[], SM_TRAJ &traj, int *re
     }
 
   traj.clear();
-  for (int i = 0; i < PR2SM_NBJOINT; i++) {
+  for (int i = 0; i < nbJoints; i++) {
     traj_i.clear();
     for (int j = 0; j < SM_NB_SEG; j++) {
       seg.IC = IC[i][j];
@@ -462,7 +462,7 @@ pr2SoftMotionGotoQMain(PR2SM_QSTR *qGoto, int *report)
     *report = S_pr2SoftMotion_SOFTMOTION_ERROR;
     return ETHER;
   }
-  smConvertSM_MOTIONtoSM_TRAJ(motion, traj, report);
+  smConvertSM_MOTIONtoSM_TRAJ(motion, PR2SM_NBJOINT, traj, report);
 
   // faut peut etre changer l'id de la traj */
 
