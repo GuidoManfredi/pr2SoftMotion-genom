@@ -36,5 +36,27 @@
 
 #define PR2SM_NBJOINT 22
 
+#define  TORSO_MAXVEL               0.013             
+#define  HEAD_PAN_MAXVEL            6
+#define  HEAD_TILT_MAXVEL           5
+#define  LASER_TILT_MAXVEL          10
+#define  R_SHOULDER_PAN_MAXVEL      2.088
+#define  R_SHOULDER_LIFT_MAXVEL     2.082
+#define  R_UPPER_ARM_ROLL_MAXVEL    3.27
+#define  R_ELBOW_FLEX_MAXVEL        3.3
+#define  R_FOREARM_ROLL_MAXVEL      3.3
+#define  R_WRIST_FLEX_MAXVEL        3.078
+#define  R_WRIT_ROLL_MAXVEL         3.6
+#define  R_GRIPPER_MAXVEL           0.9
+#define  R_GRIPPER_FALSE_MAXVEL     0.9
+#define  L_SHOULDER_PAN_MAXVEL      2.088
+#define  L_SHOULDER_LIFT_MAXVEL     2.082
+#define  L_UPPER_ARM_ROLL_MAXVEL    3.27
+#define  L_ELBOW_FLEX_MAXVEL        3.3
+#define  L_FOREARM_ROLL_MAXVEL      3.3
+#define  L_WRIST_FLEX_MAXVEL        3.078
+#define  L_WRIST_ROLL_MAXVEL        3.6
+#define  L_GRIPPER_MAXVEL           0.9
+#define  L_GRIPPER_FALSE_MAXVEL     0.9
 
 #endif
