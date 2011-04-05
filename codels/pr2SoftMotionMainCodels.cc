@@ -73,6 +73,8 @@ static double vect_J_max[PR2SM_NBJOINT];
 static double vect_A_max[PR2SM_NBJOINT];
 static double vect_V_max[PR2SM_NBJOINT];
 
+static double vect_current_pose[PR2SM_NBJOINT];
+
 /*------------------------------------------------------------------------
  *
  * pr2SoftMotionMainEnd  --  Termination codel
@@ -468,6 +470,7 @@ ACTIVITY_EVENT
 pr2SoftMotionGotoQStart(PR2SM_QSTR *qGoto, int *report)
 {
   setMaxVelVect();
+  joint_state_listener = nh->subscribe("joint_states", 1, savePoseCB);
   return EXEC;
 }
 
@@ -485,11 +488,11 @@ pr2SoftMotionGotoQMain(PR2SM_QSTR *qGoto, int *report)
   memset(motion, 0, PR2SM_NBJOINT*sizeof(SM_MOTION_MONO));
   //from 13 to 25 it's torso, head, laser, r_arm. From 29 to 36 l_arm.
   for(int i=0; i<PR2SM_NBJOINT; i++) {
-    motion[i].IC.x =  ;
+    motion[i].IC.x = vect_current_pose[i];
     motion[i].IC.v = 0.0 ;
     motion[i].IC.a = 0.0 ;
 
-    motion[i].FC.x = qGotod[i]   ;
+    motion[i].FC.x = qGotod[i];
     motion[i].FC.v = 0.0 ;
     motion[i].FC.a = 0.0 ;
 
@@ -553,4 +556,30 @@ pr2SoftMotionGotoQEnd(PR2SM_QSTR *qGoto, int *report)
 {
   /* ... add your code here ... */
   return ETHER;
+}
+
+void savePoseCB(const sensor_msgs::JointStateConstPtr& msg)
+{
+  vect_current_pose[0]=  msg->position[12];
+  vect_current_pose[1]=  msg->position[13];
+  vect_current_pose[2]=  msg->position[14];
+  vect_current_pose[3]=  msg->position[15];
+  vect_current_pose[4]=  msg->position[16];
+  vect_current_pose[5]=  msg->position[17];
+  vect_current_pose[6]=  msg->position[18];
+  vect_current_pose[7]=  msg->position[19];
+  vect_current_pose[8]=  msg->position[20];
+  vect_current_pose[9]=  msg->position[21];
+  vect_current_pose[10]=  msg->position[22];
+  vect_current_pose[11]=  msg->position[23];
+  vect_current_pose[12]=  msg->position[24];
+  vect_current_pose[13]=  msg->position[28];
+  vect_current_pose[14]=  msg->position[29];
+  vect_current_pose[15]=  msg->position[30];
+  vect_current_pose[16]=  msg->position[31];
+  vect_current_pose[17]=  msg->position[32];
+  vect_current_pose[18]=  msg->position[33];
+  vect_current_pose[19]=  msg->position[34];
+  vect_current_pose[20]=  msg->position[35];
+  vect_current_pose[21]=  msg->position[36];
 }
