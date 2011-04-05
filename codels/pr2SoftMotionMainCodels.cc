@@ -67,6 +67,10 @@ static int currentTrajId;
 void doubles2QStr(double* src, PR2SM_QSTR& dst);
 void QStr2doubles(PR2SM_QSTR& dst, double* src);
 
+static double vect_J_max[PR2SM_NBJOINT];
+static double vect_A_max[PR2SM_NBJOINT];
+static double vect_V_max[PR2SM_NBJOINT];
+
 /*------------------------------------------------------------------------
  *
  * pr2SoftMotionMainEnd  --  Termination codel
@@ -440,16 +444,10 @@ pr2SoftMotionGotoQMain(PR2SM_QSTR *qGoto, int *report)
   SM_TRAJ traj;
   SM_MOTION_MONO motion[PR2SM_NBJOINT];
 
-
-  double vect_J_max[PR2SM_NBJOINT];
-  double vect_A_max[PR2SM_NBJOINT];
-  double vect_V_max[PR2SM_NBJOINT];
-
-
-
   memset(motion, 0, PR2SM_NBJOINT*sizeof(SM_MOTION_MONO));
+  //from 13 to 25 it's torso, head, laser, r_arm. From 29 to 36 l_arm.
   for(int i=0; i<PR2SM_NBJOINT; i++) {
-    motion[i].IC.x =   ;
+    motion[i].IC.x =  ;
     motion[i].IC.v = 0.0 ;
     motion[i].IC.a = 0.0 ;
 
