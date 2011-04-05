@@ -308,6 +308,107 @@ void QStr2doubles(PR2SM_QSTR* src, double* dst)
   dst[21]= src->l_gripper_false;
 }
 
+
+int smConvertSM_MOTIONtoSM_TRAJ( SM_MOTION_MONO motion[], SM_TRAJ &traj, int *report) {
+  double criticalLength;
+    SM_LIMITS limitsGoto;
+  int TrajectoryType[PR2SM_NBJOINT];
+  SM_TIMES T_Jerk[PR2SM_NBJOINT];
+  double maxTime = 0.0;
+  double sum = 0.0;
+  double maxAxis = 0;
+  SM_STATUS resp;
+  SM_COND IC[PR2SM_NBJOINT][SM_NB_SEG];
+  double  Time[PR2SM_NBJOINT][SM_NB_SEG];
+  double  Jerk[PR2SM_NBJOINT][SM_NB_SEG];
+  SM_SEG seg;
+  std::vector<SM_SEG> traj_i;
+  std::vector<double> I(3);
+  std::vector<double> T(SM_NB_SEG);
+  std::vector<double> J(SM_NB_SEG);
+  std::vector<double> t(1);
+  std::vector<double> a(1);
+  std::vector<double> v(1);
+  std::vector<double> x(1);
+
+  for (int i = 0; i < PR2SM_NBJOINT; i++)
+    {
+
+      I[0] = motion[i].IC.a;
+      I[1] = motion[i].IC.v;
+      I[2] = motion[i].IC.x;
+
+      T[0] = motion[i].Times.Tjpa;
+      T[1] = motion[i].Times.Taca;
+      T[2] = motion[i].Times.Tjna;
+      T[3] = motion[i].Times.Tvc;
+      T[4] = motion[i].Times.Tjnb;
+      T[5] = motion[i].Times.Tacb;
+      T[6] = motion[i].Times.Tjpb;
+
+      J[0] =   motion[i].Dir*motion[i].jerk.J1;
+      J[1] =   0.0;
+      J[2] = - motion[i].Dir*motion[i].jerk.J1;
+      J[3] =   0.0;
+      J[4] = - motion[i].Dir*motion[i].jerk.J1;
+      J[5] =   0.0;
+      J[6] =   motion[i].Dir*motion[i].jerk.J1;
+
+      Time[i][0] = T[0];
+      Time[i][1] = T[1];
+      Time[i][2] = T[2];
+      Time[i][3] = T[3];
+      Time[i][4] = T[4];
+      Time[i][5] = T[5];
+      Time[i][6] = T[6];
+
+      Jerk[i][0] = J[0];
+      Jerk[i][1] = J[1];
+      Jerk[i][2] = J[2];
+      Jerk[i][3] = J[3];
+      Jerk[i][4] = J[4];
+      Jerk[i][5] = J[5];
+      Jerk[i][6] = J[6];
+
+      IC[i][0].a = I[0];
+      IC[i][0].v = I[1];
+      IC[i][0].x = I[2];
+      t[0] = 0.0;
+      for (int smp = 0; smp < SM_NB_SEG ; smp++) {
+	resp = sm_AVX_TimeVar(I, T, J, t, a, v, x);
+	IC[i][smp].a = a[0];
+	IC[i][smp].v = v[0];
+	IC[i][smp].x = x[0];     
+	if (resp != SM_OK) {
+	  printf("ERROR: Q interpolation failed (sm_AVX_TimeVar funcion)\n");
+	  *report = S_pr2SoftMotion_SOFTMOTION_ERROR;
+	  return ETHER;
+	}
+	t[0] += Time[i][smp];
+      }
+    }
+
+  traj.clear();
+  for (int i = 0; i < PR2SM_NBJOINT; i++) {
+    traj_i.clear();
+    for (int j = 0; j < SM_NB_SEG; j++) {
+      seg.IC = IC[i][j];
+      seg.time = Time[i][j];
+      seg.jerk = Jerk[i][j];
+      traj_i.push_back(seg);     
+    }
+    traj.traj.push_back(traj_i);
+    traj.qStart.push_back(motion[i].IC.x);
+    traj.qGoal.push_back(motion[i].FC.x);
+  }
+  traj.computeTimeOnTraj();
+
+
+}
+
+
+
+
 /*------------------------------------------------------------------------
  * GotoQ
  *
@@ -324,7 +425,7 @@ ACTIVITY_EVENT
 pr2SoftMotionGotoQStart(PR2SM_QSTR *qGoto, int *report)
 {
   /* ... add your code here ... */
-  return ETHER;
+  return EXEC;
 }
 
 /* pr2SoftMotionGotoQMain  -  codel EXEC of GotoQ
@@ -333,6 +434,41 @@ ACTIVITY_EVENT
 pr2SoftMotionGotoQMain(PR2SM_QSTR *qGoto, int *report)
 {
   /* ... add your code here ... */
+
+  SM_TRAJ traj;
+  SM_MOTION_MONO motion[PR2SM_NBJOINT];
+
+
+  double vect_J_max[PR2SM_NBJOINT];
+  double vect_A_max[PR2SM_NBJOINT];
+  double vect_V_max[PR2SM_NBJOINT];
+
+  memset(motion, 0, PR2SM_NBJOINT*sizeof(SM_MOTION_MONO));
+  for(int i=0; i<PR2SM_NBJOINT; i++) {
+    motion[i].IC.x =  1265/* Tu mets la position actuelle du robot */ ;
+    motion[i].IC.v = 0.0 ;
+    motion[i].IC.a = 0.0 ;
+
+    motion[i].FC.x =  154  /* Tu mets la position target du robot */  ;
+    motion[i].FC.v = 0.0 ;
+    motion[i].FC.a = 0.0 ;
+
+  }
+
+  // Compute soft motion between initial and final conditions
+  SM_STATUS resp =   sm_ComputeSoftMotionPointToPoint_gen(PR2SM_NBJOINT, vect_J_max, vect_A_max, vect_V_max, motion);
+  if (resp != SM_OK) {
+    printf("ERROR: Q interpolation failed (sm_ComputeSoftMotionPointToPoint_gen funcion)\n");
+    *report = S_pr2SoftMotion_SOFTMOTION_ERROR;
+    return ETHER;
+  }
+  smConvertSM_MOTIONtoSM_TRAJ(motion, traj, report);
+
+  // faut peut etre changer l'id de la traj */
+
+  /* et ensuite tu convertis en SM_TRAJ_STR pour envoyer ... */
+
+
   return ETHER;
 }
 
