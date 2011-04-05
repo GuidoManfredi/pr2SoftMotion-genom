@@ -67,6 +67,8 @@ static int currentTrajId;
 void doubles2QStr(double* src, PR2SM_QSTR& dst);
 void QStr2doubles(PR2SM_QSTR& dst, double* src);
 
+int setMaxVelVect();
+
 static double vect_J_max[PR2SM_NBJOINT];
 static double vect_A_max[PR2SM_NBJOINT];
 static double vect_V_max[PR2SM_NBJOINT];
@@ -128,7 +130,12 @@ pr2SoftMotionInitMain(int *report)
 
   SDI_F->timeScale = 1.0;
   SDI_F->motionIsAllowed = GEN_TRUE;
+  SDI_F->speedLimit = 0.2;
+  SDI_F->accelerationVelRatio = 2;
+  SDI_F->jerkAccelerationRatio = 3;
 
+  setMaxVelVect();
+  
   //Ros init
   printf("Init ros node...");
   ros::init(argc, argv, "pr2SoftMotionNode");
@@ -314,6 +321,37 @@ void QStr2doubles(PR2SM_QSTR* src, double* dst)
 }
 
 
+int setMaxVelVect() {
+  vect_V_max[0]=  SDI_F->speedLimit * TORSO_MAXVEL            ; 
+  vect_V_max[1]=  SDI_F->speedLimit * HEAD_PAN_MAXVEL         ; 
+  vect_V_max[2]=  SDI_F->speedLimit * HEAD_TILT_MAXVEL        ; 
+  vect_V_max[3]=  SDI_F->speedLimit * LASER_TILT_MAXVEL       ; 
+  vect_V_max[4]=  SDI_F->speedLimit * R_SHOULDER_PAN_MAXVEL   ; 
+  vect_V_max[5]=  SDI_F->speedLimit * R_SHOULDER_LIFT_MAXVEL  ; 
+  vect_V_max[6]=  SDI_F->speedLimit * R_UPPER_ARM_ROLL_MAXVEL ; 
+  vect_V_max[7]=  SDI_F->speedLimit * R_ELBOW_FLEX_MAXVEL     ; 
+  vect_V_max[8]=  SDI_F->speedLimit * R_FOREARM_ROLL_MAXVEL   ; 
+  vect_V_max[9]=  SDI_F->speedLimit * R_WRIST_FLEX_MAXVEL     ; 
+  vect_V_max[10]= SDI_F->speedLimit * R_WRIT_ROLL_MAXVEL      ; 
+  vect_V_max[11]= SDI_F->speedLimit * R_GRIPPER_MAXVEL        ; 
+  vect_V_max[12]= SDI_F->speedLimit * R_GRIPPER_FALSE_MAXVEL  ; 
+  vect_V_max[13]= SDI_F->speedLimit * L_SHOULDER_PAN_MAXVEL   ; 
+  vect_V_max[14]= SDI_F->speedLimit * L_SHOULDER_LIFT_MAXVEL  ; 
+  vect_V_max[15]= SDI_F->speedLimit * L_UPPER_ARM_ROLL_MAXVEL ; 
+  vect_V_max[16]= SDI_F->speedLimit * L_ELBOW_FLEX_MAXVEL     ; 
+  vect_V_max[17]= SDI_F->speedLimit * L_FOREARM_ROLL_MAXVEL   ; 
+  vect_V_max[18]= SDI_F->speedLimit * L_WRIST_FLEX_MAXVEL     ; 
+  vect_V_max[19]= SDI_F->speedLimit * L_WRIST_ROLL_MAXVEL     ; 
+  vect_V_max[20]= SDI_F->speedLimit * L_GRIPPER_MAXVEL        ; 
+  vect_V_max[21]= SDI_F->speedLimit * L_GRIPPER_FALSE_MAXVEL  ; 
+
+  for(int i=0; i< PR2SM_NBJOINT; i++) {
+    vect_A_max[i] = SDI_F->accelerationVelRatio * vect_V_max[i];
+    vect_J_max[i] = SDI_F->jerkAccelerationRatio * vect_A_max[i];
+  }  
+}
+
+
 int smConvertSM_MOTIONtoSM_TRAJ( SM_MOTION_MONO motion[], int nbJoints, SM_TRAJ &traj, int *report) {
   double criticalLength;
     SM_LIMITS limitsGoto;
@@ -429,7 +467,7 @@ int smConvertSM_MOTIONtoSM_TRAJ( SM_MOTION_MONO motion[], int nbJoints, SM_TRAJ 
 ACTIVITY_EVENT
 pr2SoftMotionGotoQStart(PR2SM_QSTR *qGoto, int *report)
 {
-  
+  setMaxVelVect();
   return EXEC;
 }
 

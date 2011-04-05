@@ -75,6 +75,9 @@ typedef struct PR2SOFTMOTION_STR {
     PR2SM_TRACK_STR trackStr;
     GEN_BOOL motionIsAllowed;
     double timeScale;
+    double speedLimit;
+    double accelerationVelRatio;
+    double jerkAccelerationRatio;
     PR2SM_QSTR qGoto;
 } PR2SOFTMOTION_STR;
 
@@ -92,6 +95,16 @@ request Init {
     fail_reports:	    CANNOT_INIT_ROS, CANNOT_CREATE_ROS_NODE, CANNOT_SUSCRIBE_TO_TOPIC; 
     interrupt_activity:	    all;
 };
+
+
+/*  */
+request SetSpeedLimit {
+    doc:		    "<some doc>";
+    type:		    control;
+    input:		    speedLimit::speedLimit;
+    input_info:		    0.2::"speedLimit";
+};
+
 
 /*  */
 request SetTimeScale {
