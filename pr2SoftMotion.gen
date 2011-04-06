@@ -102,9 +102,23 @@ request SetSpeedLimit {
     doc:		    "<some doc>";
     type:		    control;
     input:		    speedLimit::speedLimit;
-    input_info:		    0.2::"speedLimit";
+    input_info:		    0.5::"speedLimit";
 };
 
+request SetAccelRatio {
+	doc:	"<some doc>";
+	type:	control;
+	input:	accelerationVelRatio::accelerationVelRatio;
+	input_info:	2.0::"accelRatio";
+};
+
+
+request SetJerkRatio {
+	doc:	"<some doc>";
+	type:	control;
+	input:	jerkAccelerationRatio::jerkAccelerationRatio;
+	input_info:	3.0::"jerkRatio";	
+};
 
 /*  */
 request SetTimeScale {
