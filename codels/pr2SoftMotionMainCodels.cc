@@ -153,6 +153,8 @@ pr2SoftMotionInitMain(int *report)
   timeScale_pub = nh->advertise<std_msgs::Float64>("pr2_soft_controller/timescale", 1);
   printf("...OK\n");
 
+  currentTrajId= 0;
+
   SDI_F->isInit = GEN_TRUE;
   return ETHER;
 }
@@ -357,13 +359,6 @@ int setMaxVelVect() {
 
 
 int smConvertSM_MOTIONtoSM_TRAJ( SM_MOTION_MONO motion[], int nbJoints, SM_TRAJ &traj, int *report) {
-  double criticalLength;
-    SM_LIMITS limitsGoto;
-  int TrajectoryType[nbJoints];
-  SM_TIMES T_Jerk[nbJoints];
-  double maxTime = 0.0;
-  double sum = 0.0;
-  double maxAxis = 0;
   SM_STATUS resp;
   SM_COND IC[nbJoints][SM_NB_SEG];
   double  Time[nbJoints][SM_NB_SEG];
@@ -473,6 +468,7 @@ pr2SoftMotionGotoQStart(PR2SM_QSTR *qGoto, int *report)
 {
   setMaxVelVect();
   joint_state_listener = nh->subscribe("joint_states", 1, savePoseCB);
+  ros::spinOnce();
   return EXEC;
 }
 
@@ -487,9 +483,10 @@ pr2SoftMotionGotoQMain(PR2SM_QSTR *qGoto, int *report)
   SM_TRAJ traj;
   SM_MOTION_MONO motion[PR2SM_NBJOINT];
 
+  ros::spinOnce();
+
   memset(motion, 0, PR2SM_NBJOINT*sizeof(SM_MOTION_MONO));
-  //from 13 to 25 it's torso, head, laser, r_arm. From 29 to 36 l_arm.
-  for(int i=0; i<PR2SM_NBJOINT; i++) {
+  for(int i=0; i<PR2SM_NBJOINT; ++i) {
     motion[i].IC.x = vect_current_pose[i];
     motion[i].IC.v = 0.0 ;
     motion[i].IC.a = 0.0 ;
@@ -500,6 +497,19 @@ pr2SoftMotionGotoQMain(PR2SM_QSTR *qGoto, int *report)
 
   }
 
+/*
+  for(int i= 0; i<PR2SM_NBJOINT; ++i)
+  {
+    printf("End pose\n");
+    printf("%f\n",qGotod[i]);
+  }
+
+  for(int i= 0; i<PR2SM_NBJOINT; ++i)
+  {
+    printf("MAXES\n");
+    printf("%f %f %f\n",vect_V_max[i], vect_A_max[i], vect_J_max[i]);
+  }
+*/
   // Compute soft motion between initial and final conditions
   SM_STATUS resp =   sm_ComputeSoftMotionPointToPoint_gen(PR2SM_NBJOINT, vect_J_max, vect_A_max, vect_V_max, motion);
   if (resp != SM_OK) {
@@ -511,11 +521,13 @@ pr2SoftMotionGotoQMain(PR2SM_QSTR *qGoto, int *report)
   smConvertSM_MOTIONtoSM_TRAJ(motion, PR2SM_NBJOINT, traj, report);
 
   SM_TRAJ_STR smTraj;
-  
+
+  printf("DURATION %f\n",  traj.getDuration());  
+  traj.save("MyTraj.traj");
   traj.convertToSM_TRAJ_STR(&smTraj);
 
   // copy of the softmotion trajectory into the ros trajectory 
-  smTrajROS.trajId= smTraj.trajId;
+  smTrajROS.trajId= currentTrajId++;
   smTrajROS.nbAxis= smTraj.nbAxis;
   smTrajROS.timePreserved= smTraj.timePreserved;
   smTrajROS.qStart.resize(smTrajROS.nbAxis);
@@ -540,12 +552,9 @@ pr2SoftMotionGotoQMain(PR2SM_QSTR *qGoto, int *report)
   }
 
   traj_pub.publish(smTrajROS);
-
-
-  // faut peut etre changer l'id de la traj */
-
-  /* et ensuite tu convertis en SM_TRAJ_STR pour envoyer ... */
-
+  std_msgs::Float64 timescale;
+  timescale.data= SDI_F->timeScale;
+  timeScale_pub.publish(timescale);
 
   return ETHER;
 }
@@ -561,6 +570,7 @@ pr2SoftMotionGotoQEnd(PR2SM_QSTR *qGoto, int *report)
 
 void savePoseCB(const sensor_msgs::JointStateConstPtr& msg)
 {
+  //from 13 to 25 it's torso, head, laser, r_arm. From 29 to 36 l_arm.
   vect_current_pose[0]=  msg->position[12];
   vect_current_pose[1]=  msg->position[13];
   vect_current_pose[2]=  msg->position[14];
