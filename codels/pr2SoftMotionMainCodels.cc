@@ -135,7 +135,7 @@ pr2SoftMotionInitMain(int *report)
   SDI_F->timeScale = 1.0;
   SDI_F->motionIsAllowed = GEN_TRUE;
   SDI_F->speedLimit = 1;
-  SDI_F->accelerationVelRatio = 1;
+  SDI_F->accelerationVelRatio = 1; // Unsused
   SDI_F->jerkAccelerationRatio = 3;
 
   setMaxVelVect();
@@ -352,8 +352,33 @@ int setMaxVelVect() {
   vect_V_max[20]= SDI_F->speedLimit * L_GRIPPER_MAXVEL        ; 
   vect_V_max[21]= SDI_F->speedLimit * L_GRIPPER_FALSE_MAXVEL  ; 
 
+
+
+  vect_A_max[0]=  SDI_F->speedLimit * TORSO_MAXACC            ; 
+  vect_A_max[1]=  SDI_F->speedLimit * HEAD_PAN_MAXACC         ; 
+  vect_A_max[2]=  SDI_F->speedLimit * HEAD_TILT_MAXACC        ; 
+  vect_A_max[3]=  SDI_F->speedLimit * LASER_TILT_MAXACC       ; 
+  vect_A_max[4]=  SDI_F->speedLimit * R_SHOULDER_PAN_MAXACC   ; 
+  vect_A_max[5]=  SDI_F->speedLimit * R_SHOULDER_LIFT_MAXACC  ; 
+  vect_A_max[6]=  SDI_F->speedLimit * R_UPPER_ARM_ROLL_MAXACC ; 
+  vect_A_max[7]=  SDI_F->speedLimit * R_ELBOW_FLEX_MAXACC     ; 
+  vect_A_max[8]=  SDI_F->speedLimit * R_FOREARM_ROLL_MAXACC   ; 
+  vect_A_max[9]=  SDI_F->speedLimit * R_WRIST_FLEX_MAXACC     ; 
+  vect_A_max[10]= SDI_F->speedLimit * R_WRIT_ROLL_MAXACC      ; 
+  vect_A_max[11]= SDI_F->speedLimit * R_GRIPPER_MAXACC        ; 
+  vect_A_max[12]= SDI_F->speedLimit * R_GRIPPER_FALSE_MAXACC  ; 
+  vect_A_max[13]= SDI_F->speedLimit * L_SHOULDER_PAN_MAXACC   ; 
+  vect_A_max[14]= SDI_F->speedLimit * L_SHOULDER_LIFT_MAXACC  ; 
+  vect_A_max[15]= SDI_F->speedLimit * L_UPPER_ARM_ROLL_MAXACC ; 
+  vect_A_max[16]= SDI_F->speedLimit * L_ELBOW_FLEX_MAXACC     ; 
+  vect_A_max[17]= SDI_F->speedLimit * L_FOREARM_ROLL_MAXACC   ; 
+  vect_A_max[18]= SDI_F->speedLimit * L_WRIST_FLEX_MAXACC     ; 
+  vect_A_max[19]= SDI_F->speedLimit * L_WRIST_ROLL_MAXACC     ; 
+  vect_A_max[20]= SDI_F->speedLimit * L_GRIPPER_MAXACC        ; 
+  vect_A_max[21]= SDI_F->speedLimit * L_GRIPPER_FALSE_MAXACC  ; 
+
   for(int i=0; i< PR2SM_NBJOINT; i++) {
-    vect_A_max[i] = SDI_F->accelerationVelRatio * vect_V_max[i];
+    //vect_A_max[i] = SDI_F->accelerationVelRatio * vect_V_max[i];
     vect_J_max[i] = SDI_F->jerkAccelerationRatio * vect_A_max[i];
   }  
 }

@@ -40,23 +40,73 @@
 #define  HEAD_PAN_MAXVEL            6
 #define  HEAD_TILT_MAXVEL           5
 #define  LASER_TILT_MAXVEL          10
-#define  R_SHOULDER_PAN_MAXVEL      2.088
-#define  R_SHOULDER_LIFT_MAXVEL     2.082
-#define  R_UPPER_ARM_ROLL_MAXVEL    3.27
-#define  R_ELBOW_FLEX_MAXVEL        3.3
-#define  R_FOREARM_ROLL_MAXVEL      3.3
-#define  R_WRIST_FLEX_MAXVEL        3.078
-#define  R_WRIT_ROLL_MAXVEL         3.6
+
+#define  TORSO_MAXACC               1.0             
+#define  HEAD_PAN_MAXACC            6
+#define  HEAD_TILT_MAXACC           5
+#define  LASER_TILT_MAXACC          10
+
+// Maximum velocities from the URDF file 
+// #define  R_SHOULDER_PAN_MAXVEL      2.088
+// #define  R_SHOULDER_LIFT_MAXVEL     2.082
+// #define  R_UPPER_ARM_ROLL_MAXVEL    3.27
+// #define  R_ELBOW_FLEX_MAXVEL        3.3
+// #define  R_FOREARM_ROLL_MAXVEL      3.3
+// #define  R_WRIST_FLEX_MAXVEL        3.078
+// #define  R_WRIT_ROLL_MAXVEL         3.6
+// #define  R_GRIPPER_MAXVEL           0.9
+// #define  R_GRIPPER_FALSE_MAXVEL     0.9
+// 
+// #define  L_SHOULDER_PAN_MAXVEL      2.088
+// #define  L_SHOULDER_LIFT_MAXVEL     2.082
+// #define  L_UPPER_ARM_ROLL_MAXVEL    3.27
+// #define  L_ELBOW_FLEX_MAXVEL        3.3
+// #define  L_FOREARM_ROLL_MAXVEL      3.3
+// #define  L_WRIST_FLEX_MAXVEL        3.078
+// #define  L_WRIST_ROLL_MAXVEL        3.6
+// #define  L_GRIPPER_MAXVEL           0.9
+// #define  L_GRIPPER_FALSE_MAXVEL     0.9
+
+
+// Velocities used by the motion planner
+#define  R_SHOULDER_PAN_MAXVEL      1.5
+#define  R_SHOULDER_LIFT_MAXVEL     1.52
+#define  R_UPPER_ARM_ROLL_MAXVEL    0.27
+#define  R_ELBOW_FLEX_MAXVEL        1.5
+#define  R_FOREARM_ROLL_MAXVEL      1.5
+#define  R_WRIST_FLEX_MAXVEL        1.5
+#define  R_WRIT_ROLL_MAXVEL         1.5
 #define  R_GRIPPER_MAXVEL           0.9
 #define  R_GRIPPER_FALSE_MAXVEL     0.9
-#define  L_SHOULDER_PAN_MAXVEL      2.088
-#define  L_SHOULDER_LIFT_MAXVEL     2.082
-#define  L_UPPER_ARM_ROLL_MAXVEL    3.27
-#define  L_ELBOW_FLEX_MAXVEL        3.3
-#define  L_FOREARM_ROLL_MAXVEL      3.3
-#define  L_WRIST_FLEX_MAXVEL        3.078
-#define  L_WRIST_ROLL_MAXVEL        3.6
+
+#define  L_SHOULDER_PAN_MAXVEL      1.5
+#define  L_SHOULDER_LIFT_MAXVEL     1.52
+#define  L_UPPER_ARM_ROLL_MAXVEL    0.27
+#define  L_ELBOW_FLEX_MAXVEL        1.5
+#define  L_FOREARM_ROLL_MAXVEL      1.5
+#define  L_WRIST_FLEX_MAXVEL        1.5
+#define  L_WRIST_ROLL_MAXVEL        1.5
 #define  L_GRIPPER_MAXVEL           0.9
 #define  L_GRIPPER_FALSE_MAXVEL     0.9
 
+// Acceleration used by the motion planner
+#define  R_SHOULDER_PAN_MAXACC      1.0
+#define  R_SHOULDER_LIFT_MAXACC     1.0
+#define  R_UPPER_ARM_ROLL_MAXACC    1.0
+#define  R_ELBOW_FLEX_MAXACC        1.0
+#define  R_FOREARM_ROLL_MAXACC      1.0
+#define  R_WRIST_FLEX_MAXACC        1.0
+#define  R_WRIT_ROLL_MAXACC         1.0
+#define  R_GRIPPER_MAXACC           1.0
+#define  R_GRIPPER_FALSE_MAXACC     1.0
+
+#define  L_SHOULDER_PAN_MAXACC      1.0
+#define  L_SHOULDER_LIFT_MAXACC     1.0
+#define  L_UPPER_ARM_ROLL_MAXACC    1.0
+#define  L_ELBOW_FLEX_MAXACC        1.0
+#define  L_FOREARM_ROLL_MAXACC      1.0
+#define  L_WRIST_FLEX_MAXACC        1.0
+#define  L_WRIST_ROLL_MAXACC        1.0
+#define  L_GRIPPER_MAXACC           1.0
+#define  L_GRIPPER_FALSE_MAXACC     1.0
 #endif
