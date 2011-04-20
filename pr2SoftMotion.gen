@@ -79,6 +79,7 @@ typedef struct PR2SOFTMOTION_STR {
     double accelerationVelRatio;
     double jerkAccelerationRatio;
     PR2SM_QSTR qGoto;
+    PR2SM_xyzHead xyzHead;
 } PR2SOFTMOTION_STR;
 
 
@@ -137,7 +138,7 @@ request TrackQ {
     type:		    exec;
     exec_task:		    Main; 
     input:		    posterName::trackStr; 
-    input_info:		    "softMotion_Smoothed_Seg.traj"::"Poster or File name" , PR2SM_TRACK_FILE::"Mode";			    
+    input_info:		    "mhpArmTraj"::"Poster or File name" , PR2SM_TRACK_POSTER::"Mode";			    
     posters_input:	    SM_TRAJ_STR;
     codel_start:	    pr2SoftMotionTrackQStart;
     codel_main:		    pr2SoftMotionTrackQMain;
@@ -156,6 +157,19 @@ request GotoQ {
     codel_end:		    pr2SoftMotionGotoQEnd;
     fail_reports:           NOT_INITIALIZED, SOFTMOTION_ERROR; 
     interrupt_activity:	    GotoQ; 
+};
+
+request MoveHead {
+    doc:		    "<some doc>";
+    type:		    exec;
+    exec_task:		    Main; 
+    input:		    xyzHead::xyzHead; 
+    input_info:		    0::"x", 0::"y", 0::"z"; 
+    codel_start:	    pr2SoftMotionMoveHeadStart;
+    codel_main:		    pr2SoftMotionMoveHeadMain;
+    codel_end:		    pr2SoftMotionMoveHeadEnd;
+    fail_reports:           NOT_INITIALIZED, SOFTMOTION_ERROR; 
+    interrupt_activity:	    MoveHead; 
 };
 /*------------------------------------------------------------
  *	                        Posters

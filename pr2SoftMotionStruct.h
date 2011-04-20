@@ -68,4 +68,11 @@ typedef struct PR2SM_QSTR{
   double l_gripper_false;
 } PR2SM_QSTR;
 
+typedef struct PR2SM_xyzHead {
+
+  double x;
+  double y;
+  double z;
+} PR2SM_xyzHead;
+
 #endif

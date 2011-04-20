@@ -33,6 +33,7 @@
  ** Codels called by execution task pr2SoftMotionMain
  **
  ** Author:  Xavier BROQUERE
+ ** Modified by: Guido MANFREDI
  ** Date: Feb 2011
  **
  **/
@@ -40,12 +41,13 @@
 #include <portLib.h>
 
 #include "ros/ros.h"
-#include "pr2_soft_controller/SM_TRAJ_STR_ROS.h"
 #include "std_msgs/Float64.h"
 #include "sensor_msgs/JointState.h"
+//#include <tf/transform_listener.h>
 
 #include "server/pr2SoftMotionHeader.h"
 
+#include "pr2_soft_controller/SM_TRAJ_STR_ROS.h"
 
 #include "softMotion/softMotion.h"
 #include "softMotion/softMotionStruct.h"
@@ -75,8 +77,16 @@ static double vect_J_max[PR2SM_NBJOINT];
 static double vect_A_max[PR2SM_NBJOINT];
 static double vect_V_max[PR2SM_NBJOINT];
 
+// Contains the current pose of the robot joints
 static double vect_current_pose[PR2SM_NBJOINT];
-
+//Listen for transforms between robot frames
+/*
+static  tf::TransformListener tf;
+static std::string pan_link_= "head_pan_link";
+static std::string tilt_link_= "head_tilt_link";
+static tf::Stamped<tf::Point> target_in_pan_;
+std::vector<double> q_goal(2);  // [pan, tilt]
+*/
 /*------------------------------------------------------------------------
  *
  * pr2SoftMotionMainEnd  --  Termination codel
@@ -154,7 +164,7 @@ pr2SoftMotionInitMain(int *report)
   joint_state_listener = nh->subscribe("joint_states", 1, savePoseCB);
   printf("...OK\n");
 
-  currentTrajId= 0;
+  currentTrajId= -1;
 
   SDI_F->isInit = GEN_TRUE;
   return ETHER;
@@ -194,12 +204,14 @@ pr2SoftMotionTrackQMain(PR2SM_TRACK_STR *trackStr, int *report)
   /********************** POSTER READING ***********************/
   switch(trackStr->trackMode) {
     case PR2SM_TRACK_FILE:
+      printf("Reading from file \n");
       currentMotion.load(trackStr->posterName.name, NULL);      
       currentMotion.computeTimeOnTraj();
       currentMotion.convertToSM_TRAJ_STR(&smTraj);
       break;
 
     case PR2SM_TRACK_POSTER:
+      printf("Reading from poster...");
       if(pr2SoftMotionSM_TRAJ_STRPosterFind (trackStr->posterName.name, &pr2Trackposter) != OK) {
         *report = S_pr2SoftMotion_POSTER_NOT_FOUND;
         return ETHER;
@@ -231,6 +243,8 @@ pr2SoftMotionTrackQMain(PR2SM_TRACK_STR *trackStr, int *report)
   if(SDI_F->motionIsAllowed == GEN_TRUE) {
     // copy of the softmotion trajectory into the ros trajectory 
     smTrajROS.trajId= smTraj.trajId;
+    // update currentTrajId
+    currentTrajId= smTraj.trajId;
     smTrajROS.nbAxis= smTraj.nbAxis;
     smTrajROS.timePreserved= smTraj.timePreserved;	
     smTrajROS.qStart.resize(smTrajROS.nbAxis);
@@ -537,7 +551,7 @@ pr2SoftMotionGotoQMain(PR2SM_QSTR *qGoto, int *report)
   traj.convertToSM_TRAJ_STR(&smTraj);
 
   // copy of the softmotion trajectory into the ros trajectory 
-  smTrajROS.trajId= currentTrajId++;
+  smTrajROS.trajId= ++currentTrajId;
   smTrajROS.nbAxis= smTraj.nbAxis;
   smTrajROS.timePreserved= smTraj.timePreserved;
   smTrajROS.qStart.resize(smTrajROS.nbAxis);
@@ -578,6 +592,7 @@ pr2SoftMotionGotoQEnd(PR2SM_QSTR *qGoto, int *report)
   return ETHER;
 }
 
+// Saves the current pose of the robot in a vector
 void savePoseCB(const sensor_msgs::JointStateConstPtr& msg)
 {
   vect_current_pose[0]=  msg->position[12];  // torso
@@ -603,3 +618,75 @@ void savePoseCB(const sensor_msgs::JointStateConstPtr& msg)
   vect_current_pose[20]=  msg->position[35];
   vect_current_pose[21]=  msg->position[36];
 }
+
+ACTIVITY_EVENT
+pr2SoftMotionMoveHeadStart(PR2SM_xyzHead *xyzHead, int *report)
+{
+/*
+  // Before we do anything, we need to know the name of the pan_link's parent.
+  if (pan_parent_.empty())
+  {
+    for (int i = 0; i < 10; ++i)
+    {
+      try {
+        tf_.getParent(pan_link_, ros::Time(), pan_parent_);
+        break;
+      }
+      catch (const tf::TransformException &ex) {}
+      ros::Duration(0.5).sleep();
+  }
+
+  if (pan_parent_.empty())
+  {
+    ROS_ERROR("Could not get parent of %s in the TF tree", pan_link_.c_str());
+    return ETHER;
+  }
+*/  
+
+  return EXEC;
+}
+
+
+ACTIVITY_EVENT
+pr2SoftMotionMoveHeadMain(PR2SM_xyzHead *xyzHead, int *report)
+{
+/*
+    // Transforms the target point into the pan and tilt links.
+    const geometry_msgs::PointStamped &target = gh.getGoal()->target;
+    bool ret1 = false, ret2 = false;
+    try {
+      ros::Time now = ros::Time::now();
+      std::string error_msg;
+      ret1 = tf_.waitForTransform(pan_parent_, target.header.frame_id, target.header.stamp,
+                                 ros::Duration(5.0), ros::Duration(0.01), &error_msg);
+      ret2 = tf_.waitForTransform(pan_link_, target.header.frame_id, target.header.stamp,
+                                   ros::Duration(5.0), ros::Duration(0.01), &error_msg);
+
+      // Transforms the target into the pan and tilt frames
+      tf::Stamped<tf::Point> target_point, target_in_tilt;
+      tf::pointStampedMsgToTF(target, target_point);
+      tf_.transformPoint(pan_parent_, target_point, target_in_pan_);
+      tf_.transformPoint(pan_link_, target_point, target_in_tilt);
+
+      // Computes the desired joint positions.
+      q_goal[0] = atan2(target_in_pan_.y(), target_in_pan_.x());
+      q_goal[1] = atan2(-target_in_tilt.z(),
+                        sqrt(pow(target_in_tilt.x(),2) + pow(target_in_tilt.y(),2)));
+    }
+    catch(const tf::TransformException &ex)
+    {
+      ROS_ERROR("Transform failure (%d,%d): %s", ret1, ret2, ex.what());
+      gh.setRejected();
+      return ETHER;
+    }
+*/
+return ETHER;
+}
+
+ACTIVITY_EVENT
+pr2SoftMotionMoveHeadEnd(PR2SM_xyzHead *xyzHead, int *report)
+{
+  // ... add your code here ...
+  return ETHER;
+}
+
