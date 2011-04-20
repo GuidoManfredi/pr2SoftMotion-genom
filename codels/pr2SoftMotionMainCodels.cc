@@ -190,7 +190,12 @@ pr2SoftMotionInitMain(int *report)
 ACTIVITY_EVENT
 pr2SoftMotionTrackQStart(PR2SM_TRACK_STR *trackStr, int *report)
 {
-
+  if(trackStr->trackMode == PR2SM_TRACK_POSTER){
+    if(pr2SoftMotionSM_TRAJ_STRPosterFind (trackStr->posterName.name, &pr2Trackposter) != OK) {
+      *report = S_pr2SoftMotion_POSTER_NOT_FOUND;
+      return ETHER;
+    }
+  }
   return EXEC;
 }
 
@@ -199,6 +204,7 @@ pr2SoftMotionTrackQStart(PR2SM_TRACK_STR *trackStr, int *report)
 ACTIVITY_EVENT
 pr2SoftMotionTrackQMain(PR2SM_TRACK_STR *trackStr, int *report)
 {
+  static int previousState = 0;
   SM_TRAJ_STR smTraj;
 
   /********************** POSTER READING ***********************/
@@ -211,21 +217,22 @@ pr2SoftMotionTrackQMain(PR2SM_TRACK_STR *trackStr, int *report)
       break;
 
     case PR2SM_TRACK_POSTER:
-      printf("Reading from poster...");
-      if(pr2SoftMotionSM_TRAJ_STRPosterFind (trackStr->posterName.name, &pr2Trackposter) != OK) {
-        *report = S_pr2SoftMotion_POSTER_NOT_FOUND;
-        return ETHER;
-      }
       if(pr2SoftMotionSM_TRAJ_STRPosterRead (pr2Trackposter, &smTraj) != OK) {
         *report = S_pr2SoftMotion_POSTER_READ_ERROR;
         printf("ERROR: %s poster read failed", trackStr->posterName.name);
         return ETHER;
       }
       if(smTraj.nbAxis != PR2SM_NBJOINT) {
-        printf("ERROR: pr2SM::TrackQ traj.nbAxis (%d) != %d \n", smTraj.nbAxis, PR2SM_NBJOINT);
-        return ETHER;
+	if(previousState == 1){
+          printf("ERROR: pr2SM::TrackQ traj.nbAxis (%d) != %d \n", smTraj.nbAxis, PR2SM_NBJOINT);
+          previousState = 0;
+        }
+        return EXEC;
       } else { 
-        printf("INFO: pr2SM::TrackQ there are %d axes in the trajectory \n", smTraj.nbAxis);
+        if(previousState == 0){
+          printf("INFO: pr2SM::TrackQ there are %d axes in the trajectory \n", smTraj.nbAxis);
+          previousState = 1;
+        }
       }
       break;
     default:
@@ -274,8 +281,9 @@ pr2SoftMotionTrackQMain(PR2SM_TRACK_STR *trackStr, int *report)
     timeScale_pub.publish(timescale);
   } else {
     printf("Motion not allowed\n");
-    return END;
+    return ETHER;
   }
+  printf("INFO: Motion Terminated\n");
   return EXEC;
 }
 
