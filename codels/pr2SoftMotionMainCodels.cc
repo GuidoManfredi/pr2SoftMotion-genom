@@ -66,6 +66,7 @@ static ros::Publisher timeScale_pub;
 static ros::NodeHandle* nh;
 
 static int currentTrajId;
+static double currentDuration;
 
 void doubles2QStr(double* src, PR2SM_QSTR& dst);
 void QStr2doubles(PR2SM_QSTR& dst, double* src);
@@ -214,6 +215,7 @@ pr2SoftMotionTrackQMain(PR2SM_TRACK_STR *trackStr, int *report)
       printf("Reading from file \n");
       currentMotion.load(trackStr->posterName.name, NULL);      
       currentMotion.computeTimeOnTraj();
+    currentDuration= currentMotion.getDuration();
       currentMotion.convertToSM_TRAJ_STR(&smTraj);
       break;
 
@@ -243,6 +245,7 @@ pr2SoftMotionTrackQMain(PR2SM_TRACK_STR *trackStr, int *report)
     // compute duration
     currentMotion.importFromSM_TRAJ_STR( &smTraj ); 
     currentMotion.computeTimeOnTraj();
+    currentDuration= currentMotion.getDuration();
     currentMotion.convertToSM_TRAJ_STR(&smTraj);
   }
   /**********************************************************/
@@ -281,6 +284,9 @@ pr2SoftMotionTrackQMain(PR2SM_TRACK_STR *trackStr, int *report)
     std_msgs::Float64 timescale;
     timescale.data= SDI_F->timeScale;
     timeScale_pub.publish(timescale);
+
+    sleep(currentDuration);
+
   } else {
     printf("Motion not allowed\n");
     return ETHER;
