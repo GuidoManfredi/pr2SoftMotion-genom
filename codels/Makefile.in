@@ -41,7 +41,14 @@ EXTRA_INCLUDES += \
   -I/u/gmanfred/ros_overlay/sandbox/pr2_soft_controller/include \
   -I/u/gmanfred/ros_overlay/sandbox/pr2_soft_controller/msg_gen/cpp/include \
   -I/opt/ros/cturtle/ros/std_msgs/include \
-  -I/opt/ros/cturtle/ros/std_msgs/msg_gen/cpp/include 
+  -I/opt/ros/cturtle/ros/std_msgs/msg_gen/cpp/include \
+  -I/opt/ros/cturtle/stacks/geometry/tf/include \
+  -I/opt/ros/cturtle/stacks/geometry/tf/msg/cpp \
+  -I/opt/ros/cturtle/stacks/geometry/tf/srv/cpp \
+  -I/opt/ros/cturtle/stacks/geometry/tf/msg_gen/cpp/include \
+  -I/opt/ros/cturtle/stacks/geometry/tf/srv_gen/cpp/include \
+  -I/opt/ros/cturtle/stacks/geometry/bullet/include
+
 #
 # Add extra link flags (external libraries, ...)
 EXTRA_LIBS += \
@@ -49,8 +56,11 @@ EXTRA_LIBS += \
 	-Wl,-rpath /opt/ros/cturtle/ros/core/rosconsole/lib \
 	-Wl,-rpath /opt/ros/cturtle/ros/core/roslib/lib \
 	-Wl,-rpath,/opt/ros/cturtle/stacks/common/actionlib/lib \
-	-Wl,-rpath,/opt/ros/cturtle/stacks/common/actionlib/lib \
+        -Wl,-rpath,/opt/ros/cturtle/stacks/geometry/tf/lib \
+	-Wl,-rpath,/opt/ros/cturtle/stacks/geometry/bullet/lib \
 	-L/opt/ros/cturtle/ros/core/roscpp/lib -lros \
+	-L/opt/ros/cturtle/stacks/geometry/tf/lib -ltf \
+   	-L/opt/ros/cturtle/stacks/geometry/bullet/lib -lLinearMath
   
 
 
