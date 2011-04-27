@@ -265,7 +265,12 @@ pr2SoftMotionTrackQMain(PR2SM_TRACK_STR *trackStr, int *report)
     //currentTrajId= smTraj.trajId;
     
     // update currentTrajId
-    smTrajROS.trajId= ++currentTrajId;
+    if(currentTrajId == smTraj.trajId){
+      printf("Error, current trajectory has same ID as new one\n");
+      return ETHER;
+    }
+    currentTrajId += smTraj.trajId+1; // so currentTrajId is always incremented
+    smTrajROS.trajId= currentTrajId;
     smTrajROS.nbAxis= smTraj.nbAxis;
     smTrajROS.timePreserved= smTraj.timePreserved;	
     smTrajROS.qStart.resize(smTrajROS.nbAxis);
