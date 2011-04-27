@@ -262,14 +262,16 @@ pr2SoftMotionTrackQMain(PR2SM_TRACK_STR *trackStr, int *report)
 
   if(SDI_F->motionIsAllowed == GEN_TRUE) {
     // copy of the softmotion trajectory into the ros trajectory 
-    //currentTrajId= smTraj.trajId;
+    currentTrajId= smTraj.trajId;
     
     // update currentTrajId
+    /*
     if(currentTrajId == smTraj.trajId){
       printf("Error, current trajectory has same ID as new one\n");
       return ETHER;
     }
     currentTrajId += smTraj.trajId+1; // so currentTrajId is always incremented
+    */
     smTrajROS.trajId= currentTrajId;
     smTrajROS.nbAxis= smTraj.nbAxis;
     smTrajROS.timePreserved= smTraj.timePreserved;	
@@ -586,7 +588,7 @@ pr2SoftMotionGotoQMain(PR2SM_QSTR *qGoto, int *report)
   traj.convertToSM_TRAJ_STR(&smTraj);
 
   // copy of the softmotion trajectory into the ros trajectory 
-  smTrajROS.trajId= ++currentTrajId;
+  smTrajROS.trajId= --currentTrajId;
   smTrajROS.nbAxis= smTraj.nbAxis;
   smTrajROS.timePreserved= smTraj.timePreserved;
   smTrajROS.qStart.resize(smTrajROS.nbAxis);
