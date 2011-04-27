@@ -53,6 +53,9 @@
 #include "softMotion/softMotionStruct.h"
 #include "softMotion/softMotionStructGenom.h"
 
+#include "pr2_controllers_msgs/QueryTrajectoryState.h"
+#include "pr2_controllers_msgs/JointTrajectoryControllerState.h"
+
 static POSTER_ID pr2Trackposter = NULL; /* the poster to load */ 
 static SM_TRAJ currentMotion; /* the softMotion trajectory */
 static pr2_soft_controller::SM_TRAJ_STR_ROS smTrajROS; //the last sent trajectory
@@ -61,16 +64,21 @@ static double currTime; /* the time parameter along the trajectory */
 static SM_COND timeScaleCond; /* the kinematic state of the time parameter */
 
 static ros::Subscriber joint_state_listener;
+static ros::Subscriber state_sub;
 static ros::Publisher traj_pub;
 static ros::Publisher timeScale_pub;
+static ros::ServiceClient query_state_client; 
+
 static ros::NodeHandle* nh;
 
 static int currentTrajId;
 static double currentDuration;
+static double time_from_start;
 
-void doubles2QStr(double* src, PR2SM_QSTR& dst);
+static void doubles2QStr(double* src, PR2SM_QSTR& dst);
 void QStr2doubles(PR2SM_QSTR& dst, double* src);
 void savePoseCB(const sensor_msgs::JointStateConstPtr& msg);
+void saveTimeCB(const pr2_controllers_msgs::JointTrajectoryControllerStateConstPtr& msg);
 tf::TransformListener & getTf();
 int setMaxVelVect();
 
@@ -159,10 +167,12 @@ pr2SoftMotionInitMain(int *report)
   nh= new ros::NodeHandle(); 
 
   //ros publishers init
-  printf("Init publishers...");
+  printf("Init publishers/subscribers/services...");
   traj_pub = nh->advertise<pr2_soft_controller::SM_TRAJ_STR_ROS>("pr2_soft_controller/command", 1);  
   timeScale_pub = nh->advertise<std_msgs::Float64>("pr2_soft_controller/timescale", 1);
   joint_state_listener = nh->subscribe("joint_states", 1, savePoseCB);
+  state_sub = nh->subscribe("pr2_soft_controller/state", 1, saveTimeCB);
+  query_state_client  = nh->serviceClient<pr2_controllers_msgs::QueryTrajectoryState>("pr2_soft_controller/query_state");
   printf("...OK\n");
 
   currentTrajId= -1;
@@ -215,7 +225,6 @@ pr2SoftMotionTrackQMain(PR2SM_TRACK_STR *trackStr, int *report)
       printf("Reading from file \n");
       currentMotion.load(trackStr->posterName.name, NULL);      
       currentMotion.computeTimeOnTraj();
-    currentDuration= currentMotion.getDuration();
       currentMotion.convertToSM_TRAJ_STR(&smTraj);
       break;
 
@@ -231,7 +240,8 @@ pr2SoftMotionTrackQMain(PR2SM_TRACK_STR *trackStr, int *report)
           previousState = 0;
         }
         return ETHER;
-      } else { 
+      }
+      else { 
         if(previousState == 0){
           printf("INFO: pr2SM::TrackQ there are %d axes in the trajectory \n", smTraj.nbAxis);
           previousState = 1;
@@ -242,14 +252,13 @@ pr2SoftMotionTrackQMain(PR2SM_TRACK_STR *trackStr, int *report)
       *report = S_pr2SoftMotion_BAD_MODE;
       return ETHER;
 
-    // compute duration
-    currentMotion.importFromSM_TRAJ_STR( &smTraj ); 
-    currentMotion.computeTimeOnTraj();
-    currentDuration= currentMotion.getDuration();
-    currentMotion.convertToSM_TRAJ_STR(&smTraj);
   }
   /**********************************************************/
 
+  // compute duration
+  currentMotion.importFromSM_TRAJ_STR( &smTraj ); 
+  currentMotion.computeTimeOnTraj();
+  currentMotion.convertToSM_TRAJ_STR(&smTraj);
 
   if(SDI_F->motionIsAllowed == GEN_TRUE) {
     // copy of the softmotion trajectory into the ros trajectory 
@@ -285,7 +294,14 @@ pr2SoftMotionTrackQMain(PR2SM_TRACK_STR *trackStr, int *report)
     timescale.data= SDI_F->timeScale;
     timeScale_pub.publish(timescale);
 
-    sleep(currentDuration);
+    ros::Rate loop_rate(10);
+    do{
+       loop_rate.sleep();
+       ros::spinOnce();
+    } while(time_from_start < currentMotion.getDuration());
+
+
+    printf("Motion terminated\n");
 
   } else {
     printf("Motion not allowed\n");
@@ -380,8 +396,7 @@ int setMaxVelVect() {
   vect_V_max[20]= SDI_F->speedLimit * L_GRIPPER_MAXVEL        ; 
   vect_V_max[21]= SDI_F->speedLimit * L_GRIPPER_FALSE_MAXVEL  ; 
 
-
-
+/*
   vect_A_max[0]=  SDI_F->speedLimit * TORSO_MAXACC            ; 
   vect_A_max[1]=  SDI_F->speedLimit * HEAD_PAN_MAXACC         ; 
   vect_A_max[2]=  SDI_F->speedLimit * HEAD_TILT_MAXACC        ; 
@@ -404,9 +419,10 @@ int setMaxVelVect() {
   vect_A_max[19]= SDI_F->speedLimit * L_WRIST_ROLL_MAXACC     ; 
   vect_A_max[20]= SDI_F->speedLimit * L_GRIPPER_MAXACC        ; 
   vect_A_max[21]= SDI_F->speedLimit * L_GRIPPER_FALSE_MAXACC  ; 
+*/
 
   for(int i=0; i< PR2SM_NBJOINT; i++) {
-    //vect_A_max[i] = SDI_F->accelerationVelRatio * vect_V_max[i];
+    vect_A_max[i] = SDI_F->accelerationVelRatio * vect_V_max[i];
     vect_J_max[i] = SDI_F->jerkAccelerationRatio * vect_A_max[i];
   }  
 }
@@ -631,6 +647,11 @@ void savePoseCB(const sensor_msgs::JointStateConstPtr& msg)
   vect_current_pose[19]=  msg->position[34];
   vect_current_pose[20]=  msg->position[35];
   vect_current_pose[21]=  msg->position[36];
+}
+
+void saveTimeCB(const pr2_controllers_msgs::JointTrajectoryControllerStateConstPtr& msg)
+{
+  time_from_start= msg->actual.time_from_start.toSec();
 }
 
 ACTIVITY_EVENT
