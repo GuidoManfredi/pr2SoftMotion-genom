@@ -298,7 +298,8 @@ pr2SoftMotionTrackQMain(PR2SM_TRACK_STR *trackStr, int *report)
     do{
        loop_rate.sleep();
        ros::spinOnce();
-    } while(fabs(time_from_start - currentMotion.getDuration()) < 0.000001);
+       //printf("TIME: %f / %f\n", time_from_start, currentMotion.getDuration());
+    } while(fabs(time_from_start - currentMotion.getDuration()) > 0.000001);
 
   } else {
     printf("Motion not allowed\n");
