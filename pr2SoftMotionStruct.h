@@ -44,6 +44,7 @@ typedef struct PR2SM_TRACK_STR {
 } PR2SM_TRACK_STR;
 
 typedef struct PR2SM_QSTR{
+  double relatif; // we use a double for 64 bits compatibility
   double torso;
   double head_pan;
   double head_tilt;

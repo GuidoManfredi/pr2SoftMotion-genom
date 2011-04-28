@@ -554,17 +554,29 @@ pr2SoftMotionGotoQMain(PR2SM_QSTR *qGoto, int *report)
 
   memset(motion, 0, PR2SM_NBJOINT*sizeof(SM_MOTION_MONO));
 
-  for(int i=0; i<PR2SM_NBJOINT; ++i) {
+  if(qGoto->relatif != 0){
+    for(int i=0; i<PR2SM_NBJOINT; ++i) {
+      motion[i].IC.x = vect_current_pose[i];
+      motion[i].IC.v = 0.0 ;
+      motion[i].IC.a = 0.0 ;
 
-    motion[i].IC.x = vect_current_pose[i];
-    motion[i].IC.v = 0.0 ;
-    motion[i].IC.a = 0.0 ;
+      motion[i].FC.x = vect_current_pose[i] + qGotod[i];
+      motion[i].FC.v = 0.0 ;
+      motion[i].FC.a = 0.0 ;
+    }
+  } else {
 
-    motion[i].FC.x = qGotod[i];
-    motion[i].FC.v = 0.0 ;
-    motion[i].FC.a = 0.0 ;
+    for(int i=0; i<PR2SM_NBJOINT; ++i) {
+      motion[i].IC.x = vect_current_pose[i];
+      motion[i].IC.v = 0.0 ;
+      motion[i].IC.a = 0.0 ;
 
+      motion[i].FC.x = qGotod[i];
+      motion[i].FC.v = 0.0 ;
+      motion[i].FC.a = 0.0 ;
+    }
   }
+
 
   // Compute soft motion between initial and final conditions
   SM_STATUS resp =   sm_ComputeSoftMotionPointToPoint_gen(PR2SM_NBJOINT, vect_J_max, vect_A_max, vect_V_max, motion);
