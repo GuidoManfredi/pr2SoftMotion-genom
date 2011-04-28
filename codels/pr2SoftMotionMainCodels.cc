@@ -216,7 +216,7 @@ pr2SoftMotionTrackQStart(PR2SM_TRACK_STR *trackStr, int *report)
 ACTIVITY_EVENT
 pr2SoftMotionTrackQMain(PR2SM_TRACK_STR *trackStr, int *report)
 {
-  static int previousState = 0;
+  static int previousState = 0, motionOk = 0;
   SM_TRAJ_STR smTraj;
 
   /********************** POSTER READING ***********************/
@@ -245,6 +245,7 @@ pr2SoftMotionTrackQMain(PR2SM_TRACK_STR *trackStr, int *report)
         if(previousState == 0){
           printf("INFO: pr2SM::TrackQ there are %d axes in the trajectory \n", smTraj.nbAxis);
           previousState = 1;
+          motionOk = 0;
         }
       }
       break;
@@ -264,14 +265,6 @@ pr2SoftMotionTrackQMain(PR2SM_TRACK_STR *trackStr, int *report)
     // copy of the softmotion trajectory into the ros trajectory 
     currentTrajId= smTraj.trajId;
     
-    // update currentTrajId
-    /*
-    if(currentTrajId == smTraj.trajId){
-      printf("Error, current trajectory has same ID as new one\n");
-      return ETHER;
-    }
-    currentTrajId += smTraj.trajId+1; // so currentTrajId is always incremented
-    */
     smTrajROS.trajId= currentTrajId;
     smTrajROS.nbAxis= smTraj.nbAxis;
     smTrajROS.timePreserved= smTraj.timePreserved;	
@@ -305,16 +298,13 @@ pr2SoftMotionTrackQMain(PR2SM_TRACK_STR *trackStr, int *report)
     do{
        loop_rate.sleep();
        ros::spinOnce();
-    } while(time_from_start < currentMotion.getDuration());
-
-
-    printf("Motion terminated\n");
+    } while(fabs(time_from_start - currentMotion.getDuration()) < 0.000001);
 
   } else {
     printf("Motion not allowed\n");
     return ETHER;
   }
-  return ETHER;
+  return END;
 }
 
 /* pr2SoftMotionTrackQEnd  -  codel END of TrackQ
@@ -322,6 +312,7 @@ pr2SoftMotionTrackQMain(PR2SM_TRACK_STR *trackStr, int *report)
 ACTIVITY_EVENT
 pr2SoftMotionTrackQEnd(PR2SM_TRACK_STR *trackStr, int *report)
 {
+  printf("INFO: Motion Terminated\n");
   return ETHER;
 }
 
