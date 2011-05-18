@@ -85,12 +85,14 @@ dnl --- checks for libraries --------------------------------------------
 dnl
 
 dnl GenoM and pocolibs
-PKG_CHECK_MODULES(GENOM, genom >= 2.6)
+PKG_CHECK_MODULES(GENOM, genom >= 2.7)
 AC_SUBST(GENOM_CFLAGS)
 AC_SUBST(GENOM_LIBS)
 
 dnl Tcl
-ifelse([yes], [yes], [ROBOT_LIB_TCL(/usr/lib64/)], [])
+ifelse([yes], [yes],
+ [PKG_CHECK_MODULES(TCLSERV, [tclserv >= 2.7])
+  ROBOT_LIB_TCL], [])
 
 dnl transgen and oprs
 ifelse([no], [yes], [

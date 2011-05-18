@@ -138,7 +138,7 @@ request TrackQ {
     type:		    exec;
     exec_task:		    Main; 
     input:		    posterName::trackStr; 
-    input_info:		    "mhpArmTraj"::"Poster or File name" , PR2SM_TRACK_POSTER::"Mode";			    
+    input_info:		    "mhpArmTraj"::"Poster or File name" , PR2SM_TRACK_POSTER::"Mode", PR2SM_PR2::"Robot part";			    
     posters_input:	    SM_TRAJ_STR;
     codel_start:	    pr2SoftMotionTrackQStart;
     codel_main:		    pr2SoftMotionTrackQMain;

@@ -33,6 +33,15 @@
 
 #include "pr2SoftMotionConst.h"
 
+typedef enum PR2SM_ROBOT_PART_ENUM {
+  PR2SM_PR2,
+  PR2SM_RARM,
+  PR2SM_LARM,
+  PR2SM_HEADPAN,
+  PR2SM_HEADTILT,
+  PR2SM_TORSO
+} PR2SM_ROBOT_PART_ENUM;
+
 typedef enum PR2SM_TRACK_MODE_ENUM {
   PR2SM_TRACK_FILE,
   PR2SM_TRACK_POSTER
@@ -41,6 +50,7 @@ typedef enum PR2SM_TRACK_MODE_ENUM {
 typedef struct PR2SM_TRACK_STR {
   GEN_STRING128       posterName;
   PR2SM_TRACK_MODE_ENUM trackMode;
+  PR2SM_ROBOT_PART_ENUM robotPart;
 } PR2SM_TRACK_STR;
 
 typedef struct PR2SM_QSTR{

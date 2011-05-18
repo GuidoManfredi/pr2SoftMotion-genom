@@ -9,6 +9,6 @@ cppflags= -I/u/gmanfred/openrobots/include -I/u/gmanfred/openrobots/include/genB
 Name: pr2SoftMotion
 Description: pr2SoftMotion Genom module
 Version: @PACKAGE_VERSION@
-Requires: genom >= 2.6 , genBasic, genManip, genHum, gbM
+Requires: genom >= 2.7 , genBasic, genManip, genHum, gbM
 Libs: -Wl,-rpath,${libdir} -L${libdir} -lpr2SoftMotionClient
 Cflags: -I${includedir} -I${includedir}/pr2SoftMotion

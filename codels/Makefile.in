@@ -19,7 +19,8 @@ all: codels-mk-all
 
 codels_src = \
 	pr2SoftMotionMainCodels.cc \
-	pr2SoftMotionCntrlTaskCodels.cc
+	pr2SoftMotionCntrlTaskCodels.cc \
+        ControllerAmbassador.cc
 
 # Add extra flags for the preprocessor (external libraries, ...)
 EXTRA_INCLUDES += \

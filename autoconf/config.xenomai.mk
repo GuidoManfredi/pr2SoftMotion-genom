@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2006 CNRS/LAAS
+# Copyright (c) 2006-2010 CNRS/LAAS
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -30,6 +30,5 @@ LIBTOOL_LINKPOSTERLIB=	-lposterLib
 
 LTLK_CLIENT_LIB=	$(OBJDIR)/$(CLIENT_LIB)
 
-
-CFLAGS+=	$(shell ${XENO_CONFIG} --posix-cflags)
-LDFLAGS+=	$(shell ${XENO_CONFIG} --posix-ldflags)
+CFLAGS+=	$(shell ${XENO_CONFIG} --skin=posix --cflags)
+LDFLAGS+=	$(shell ${XENO_CONFIG} --skin=posix --ldflags)
