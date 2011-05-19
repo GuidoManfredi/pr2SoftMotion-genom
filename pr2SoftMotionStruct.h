@@ -37,8 +37,7 @@ typedef enum PR2SM_ROBOT_PART_ENUM {
   PR2SM_PR2,
   PR2SM_RARM,
   PR2SM_LARM,
-  PR2SM_HEADPAN,
-  PR2SM_HEADTILT,
+  PR2SM_HEAD,
   PR2SM_TORSO
 } PR2SM_ROBOT_PART_ENUM;
 
@@ -54,7 +53,8 @@ typedef struct PR2SM_TRACK_STR {
 } PR2SM_TRACK_STR;
 
 typedef struct PR2SM_QSTR{
-  double relatif; // we use a double for 64 bits compatibility
+  PR2SM_ROBOT_PART_ENUM robotPart;
+  int relatif; // we use a int for 64 bits compatibility
   double torso;
   double head_pan;
   double head_tilt;
@@ -80,10 +80,10 @@ typedef struct PR2SM_QSTR{
 } PR2SM_QSTR;
 
 typedef struct PR2SM_xyzHead {
-
   double x;
   double y;
   double z;
+  char frame[56];
 } PR2SM_xyzHead;
 
 #endif

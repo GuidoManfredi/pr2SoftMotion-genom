@@ -39,13 +39,8 @@
  **/
 
 #include <portLib.h>
-
 #include "ros/ros.h"
-
 #include "softMotion/softMotion.h"
-#include "softMotion/softMotionStruct.h"
-#include "softMotion/softMotionStructGenom.h"
-
 #include "ControllerAmbassador.h"
 
 static POSTER_ID pr2Trackposter = NULL; /* the poster to load */ 
@@ -54,10 +49,11 @@ static SM_TRAJ currentMotion; /* the softMotion trajectory */
 static ros::NodeHandle* nh;
 ControllerAmbassador* rArmAmbassador; 
 ControllerAmbassador* lArmAmbassador; 
-ControllerAmbassador* panHeadAmbassador; 
-ControllerAmbassador* tiltHeadArmAmbassador;
+ControllerAmbassador* headAmbassador; 
 ControllerAmbassador* pr2Ambassador;
 
+static ros::Publisher pan_head_pub;
+static ros::Publisher tilt_head_pub;
 
 /*------------------------------------------------------------------------
  *
@@ -131,11 +127,13 @@ pr2SoftMotionInitMain(int *report)
 
   rArmAmbassador = new ControllerAmbassador(PR2SM_RARM, nh);
   lArmAmbassador = new ControllerAmbassador(PR2SM_LARM, nh);
-  panHeadAmbassador = new ControllerAmbassador(PR2SM_HEADPAN, nh);
-  tiltHeadArmAmbassador = new ControllerAmbassador(PR2SM_HEADTILT, nh);
+  headAmbassador = new ControllerAmbassador(PR2SM_HEAD, nh);
   pr2Ambassador = new ControllerAmbassador(PR2SM_PR2, nh);
 
   SDI_F->isInit = GEN_TRUE;
+
+  pan_head_pub= nh->advertise<std_msgs::Float64>("pan_head_soft_controller/command", 1);
+  tilt_head_pub= nh->advertise<std_msgs::Float64>("tilt_head_soft_controller/command", 1);
 
   if(pr2SoftMotionSM_TRAJ_STRPosterFind ("mhpArmTraj", &pr2Trackposter) != OK) {
       *report = S_pr2SoftMotion_POSTER_NOT_FOUND;
@@ -214,29 +212,27 @@ pr2SoftMotionTrackQMain(PR2SM_TRACK_STR *trackStr, int *report)
   /**********************************************************/
 
   // TODO make sure the time computation is done before
-  currentMotion.importFromSM_TRAJ_STR( &smTraj ); 
+  currentMotion.importFromSM_TRAJ_STR(&smTraj); 
   currentMotion.computeTimeOnTraj();
   currentMotion.convertToSM_TRAJ_STR(&smTraj);
 
   if(SDI_F->motionIsAllowed == GEN_TRUE) {
     switch(trackStr->robotPart){
       case PR2SM_RARM:
-        rArmAmbassador->trackQ(smTraj)
+        rArmAmbassador->trackQ(&smTraj, report);
         break;
       case PR2SM_LARM:
-        lArmAmbassador->trackQ(smTraj)
+        lArmAmbassador->trackQ(&smTraj, report);
         break;
-      case PR2SM_HEADPAN:
-        panHeadAmbassador->trackQ(smTraj)
+      case PR2SM_HEAD:
+        headAmbassador->trackQ(&smTraj, report);
         break;
-      case PR2SM_HEADTILT:
-        tiltHeadAmbassador->trackQ(smTraj)
-        break;
-      case PR2SM_TORSO:
-        pr2Ambassador->trackQ(smTraj)
+      case PR2SM_PR2:
+        pr2Ambassador->trackQ(&smTraj, report);
         break;
       default:
-        ;
+        printf("Error: unknown robot part. Motion cancelled.\n");
+        return ETHER; 
     }
   } else {
     printf("Motion not allowed\n");
@@ -280,6 +276,24 @@ ACTIVITY_EVENT
 pr2SoftMotionGotoQMain(PR2SM_QSTR *qGoto, int *report)
 {
 
+  switch(qGoto->robotPart){
+    case PR2SM_RARM:
+      rArmAmbassador->gotoQ(qGoto, report);
+      break;
+    case PR2SM_LARM:
+      lArmAmbassador->gotoQ(qGoto, report);
+      break;
+    case PR2SM_HEAD:
+      headAmbassador->gotoQ(qGoto, report);
+      break;
+    case PR2SM_TORSO:
+      break;
+    case PR2SM_PR2:
+      pr2Ambassador->gotoQ(qGoto, report);
+      break;
+    default:
+      printf("Error: unknown robot part. Motion cancelled.\n");
+  }
 
   return ETHER;
 }
@@ -320,6 +334,31 @@ pr2SoftMotionMoveHeadStart(PR2SM_xyzHead *xyzHead, int *report)
 ACTIVITY_EVENT
 pr2SoftMotionMoveHeadMain(PR2SM_xyzHead *xyzHead, int *report)
 {
+  tf::TransformListener listener;
+  double pan, tilt;
+  //transforming point into robot frame
+  geometry_msgs::PointStamped goal;
+  geometry_msgs::PointStamped goalRobotFrame;
+  geometry_msgs::PointStamped goalPanFrame;
+
+  goal.header.stamp= ros::Time(0);
+  goal.header.frame_id= xyzHead->frame;
+  goal.point.x= xyzHead->x;
+  goal.point.y= xyzHead->y;
+  goal.point.z= xyzHead->z;
+
+  //wait for the listener to get the first message
+  listener.waitForTransform(xyzHead->frame, "base_footprint", ros::Time(0), ros::Duration(1.0));
+  listener.waitForTransform(xyzHead->frame, "head_pan_link", ros::Time(0), ros::Duration(1.0));
+
+  listener.transformPoint("base_footprint", goal, goalRobotFrame);
+  listener.transformPoint("head_pan_link", goal, goalPanFrame);
+
+  pan= atan2(goalRobotFrame.point.y, goalRobotFrame.point.x);
+  tilt= atan2(-goalPanFrame.point.z, sqrt(pow(goalPanFrame.point.x,2)+pow(goalPanFrame.point.y,2)));
+
+  pan_head_pub.publish(pan);
+  tilt_head_pub.publish(tilt);
 
 return ETHER;
 }
