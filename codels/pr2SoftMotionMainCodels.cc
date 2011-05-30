@@ -42,18 +42,20 @@
 #include "ros/ros.h"
 #include "softMotion/softMotion.h"
 #include "ControllerAmbassador.h"
+#include "GripperSensorMonitor.h"
 
 static POSTER_ID pr2Trackposter = NULL; /* the poster to load */ 
 static SM_TRAJ currentMotion; /* the softMotion trajectory */
 
 static ros::NodeHandle* nh;
-ControllerAmbassador* rArmAmbassador; 
-ControllerAmbassador* lArmAmbassador; 
-ControllerAmbassador* headAmbassador; 
-ControllerAmbassador* pr2Ambassador;
+static ControllerAmbassador* rArmAmbassador; 
+static ControllerAmbassador* lArmAmbassador; 
+static ControllerAmbassador* headAmbassador; 
 
 static ros::Publisher pan_head_pub;
 static ros::Publisher tilt_head_pub;
+
+static GripperSensorMonitor* r_gripperSensorMonitor;
 
 /*------------------------------------------------------------------------
  *
@@ -115,9 +117,7 @@ pr2SoftMotionInitMain(int *report)
   SDI_F->speedLimit = 1;
   SDI_F->accelerationVelRatio = 1; // Unsused
   SDI_F->jerkAccelerationRatio = 3;
-
-  setMaxVelVect();
-  
+ 
   //Ros init
   printf("Init ros node...");
   ros::init(argc, argv, "pr2SoftMotionNode");
@@ -128,7 +128,8 @@ pr2SoftMotionInitMain(int *report)
   rArmAmbassador = new ControllerAmbassador(PR2SM_RARM, nh);
   lArmAmbassador = new ControllerAmbassador(PR2SM_LARM, nh);
   headAmbassador = new ControllerAmbassador(PR2SM_HEAD, nh);
-  pr2Ambassador = new ControllerAmbassador(PR2SM_PR2, nh);
+
+  r_gripperSensorMonitor = new GripperSensorMonitor();
 
   SDI_F->isInit = GEN_TRUE;
 
@@ -163,14 +164,6 @@ pr2SoftMotionInitMain(int *report)
    Returns:  START EXEC END ETHER FAIL ZOMBIE */
 ACTIVITY_EVENT
 pr2SoftMotionTrackQStart(PR2SM_TRACK_STR *trackStr, int *report)
-{
-  return EXEC;
-}
-
-/* pr2SoftMotionTrackQMain  -  codel EXEC of TrackQ
-   Returns:  EXEC END ETHER FAIL ZOMBIE */
-ACTIVITY_EVENT
-pr2SoftMotionTrackQMain(PR2SM_TRACK_STR *trackStr, int *report)
 {
   static int previousState = 0, motionOk = 0;
   SM_TRAJ_STR smTraj;
@@ -228,7 +221,6 @@ pr2SoftMotionTrackQMain(PR2SM_TRACK_STR *trackStr, int *report)
         headAmbassador->trackQ(&smTraj, report);
         break;
       case PR2SM_PR2:
-        pr2Ambassador->trackQ(&smTraj, report);
         break;
       default:
         printf("Error: unknown robot part. Motion cancelled.\n");
@@ -238,7 +230,39 @@ pr2SoftMotionTrackQMain(PR2SM_TRACK_STR *trackStr, int *report)
     printf("Motion not allowed\n");
     return ETHER;
   }
-  return END;
+
+  return EXEC;
+}
+
+/* pr2SoftMotionTrackQMain  -  codel EXEC of TrackQ
+   Returns:  EXEC END ETHER FAIL ZOMBIE */
+ACTIVITY_EVENT
+pr2SoftMotionTrackQMain(PR2SM_TRACK_STR *trackStr, int *report)
+{
+  bool finished= false;
+
+  switch(trackStr->robotPart){
+    case PR2SM_RARM:
+      finished= rArmAmbassador->monitorTraj();
+      break;
+    case PR2SM_LARM:
+      finished= lArmAmbassador->monitorTraj();
+      break;
+    case PR2SM_HEAD:
+      finished= headAmbassador->monitorTraj();
+      break;
+    case PR2SM_PR2:
+      break;
+    default:
+      printf("Error: unknown robot part. Motion cancelled.\n");
+      return ETHER;
+  }
+
+  //end loop conditions
+  if(finished)
+    return END;
+  else
+    return EXEC;
 }
 
 /* pr2SoftMotionTrackQEnd  -  codel END of TrackQ
@@ -246,7 +270,7 @@ pr2SoftMotionTrackQMain(PR2SM_TRACK_STR *trackStr, int *report)
 ACTIVITY_EVENT
 pr2SoftMotionTrackQEnd(PR2SM_TRACK_STR *trackStr, int *report)
 {
-  printf("INFO: Motion Terminated\n");
+  printf("INFO: Motion finished.\n");
   return ETHER;
 }
 
@@ -266,7 +290,26 @@ pr2SoftMotionTrackQEnd(PR2SM_TRACK_STR *trackStr, int *report)
 ACTIVITY_EVENT
 pr2SoftMotionGotoQStart(PR2SM_QSTR *qGoto, int *report)
 {
-  setMaxVelVect();
+  switch(qGoto->robotPart){
+    case PR2SM_RARM:
+      rArmAmbassador->setRatios(SDI_F->accelerationVelRatio, SDI_F->jerkAccelerationRatio);
+      rArmAmbassador->gotoQ(qGoto, report);
+      break;
+    case PR2SM_LARM:
+      lArmAmbassador->setRatios(SDI_F->accelerationVelRatio, SDI_F->jerkAccelerationRatio);
+      lArmAmbassador->gotoQ(qGoto, report);
+      break;
+    case PR2SM_HEAD:
+      headAmbassador->setRatios(SDI_F->accelerationVelRatio, SDI_F->jerkAccelerationRatio);
+      headAmbassador->gotoQ(qGoto, report);
+      break;
+    case PR2SM_TORSO:
+      break;
+    case PR2SM_PR2:
+      break;
+    default:
+      printf("Error: unknown robot part. Motion cancelled.\n");
+  }
   return EXEC;
 }
 
@@ -275,25 +318,6 @@ pr2SoftMotionGotoQStart(PR2SM_QSTR *qGoto, int *report)
 ACTIVITY_EVENT
 pr2SoftMotionGotoQMain(PR2SM_QSTR *qGoto, int *report)
 {
-
-  switch(qGoto->robotPart){
-    case PR2SM_RARM:
-      rArmAmbassador->gotoQ(qGoto, report);
-      break;
-    case PR2SM_LARM:
-      lArmAmbassador->gotoQ(qGoto, report);
-      break;
-    case PR2SM_HEAD:
-      headAmbassador->gotoQ(qGoto, report);
-      break;
-    case PR2SM_TORSO:
-      break;
-    case PR2SM_PR2:
-      pr2Ambassador->gotoQ(qGoto, report);
-      break;
-    default:
-      printf("Error: unknown robot part. Motion cancelled.\n");
-  }
 
   return ETHER;
 }
@@ -350,9 +374,16 @@ pr2SoftMotionMoveHeadMain(PR2SM_xyzHead *xyzHead, int *report)
   //wait for the listener to get the first message
   listener.waitForTransform(xyzHead->frame, "base_footprint", ros::Time(0), ros::Duration(1.0));
   listener.waitForTransform(xyzHead->frame, "head_pan_link", ros::Time(0), ros::Duration(1.0));
-
-  listener.transformPoint("base_footprint", goal, goalRobotFrame);
-  listener.transformPoint("head_pan_link", goal, goalPanFrame);
+  try
+  {
+    listener.transformPoint("base_footprint", goal, goalRobotFrame);
+    listener.transformPoint("head_pan_link", goal, goalPanFrame);
+  }
+  catch (tf::TransformException ex)
+  {
+    ROS_ERROR("%s",ex.what());
+    return ETHER;
+  }
 
   pan= atan2(goalRobotFrame.point.y, goalRobotFrame.point.x);
   tilt= atan2(-goalPanFrame.point.z, sqrt(pow(goalPanFrame.point.x,2)+pow(goalPanFrame.point.y,2)));
@@ -360,7 +391,7 @@ pr2SoftMotionMoveHeadMain(PR2SM_xyzHead *xyzHead, int *report)
   pan_head_pub.publish(pan);
   tilt_head_pub.publish(tilt);
 
-return ETHER;
+return END;
 }
 
 /* pr2SoftMotionMoveHeadEnd  -  codel START of MoveHead
@@ -373,4 +404,53 @@ pr2SoftMotionMoveHeadEnd(PR2SM_xyzHead *xyzHead, int *report)
 }
 
 
+/*------------------------------------------------------------------------
+ * GripperGrabRelease
+ *
+ * Description: 
+ *
+ *
+ * Reports:      OK
+ *              S_pr2SoftMotion_NOT_INITIALIZED
+ *              S_pr2SoftMotion_SOFTMOTION_ERROR
+ */
+
+
+/* pr2SoftMotionMoveHeadStart  -  codel START of MoveHead
+   Returns:  START EXEC END ETHER FAIL ZOMBIE */
+ACTIVITY_EVENT
+pr2SoftMotionGripperGrabReleaseStart(PR2SM_gripperGrabRelease *mode, int *report)
+{
+
+
+  return EXEC;
+}
+
+
+/* pr2SoftMotionMoveHeadMain  -  codel START of MoveHead
+   Returns:  START EXEC END ETHER FAIL ZOMBIE */
+ACTIVITY_EVENT
+pr2SoftMotionGripperGrabReleaseMain(PR2SM_gripperGrabRelease *mode, int *report)
+{
+
+  if(*mode == PR2SM_RELEASE)
+  {
+    r_gripperSensorMonitor->release(SDI_F->sensorTresholds.releaseAcc, SDI_F->sensorTresholds.releaseSlip);
+  }
+  else if(*mode == PR2SM_GRAB)
+  {
+    r_gripperSensorMonitor->grab(SDI_F->sensorTresholds.grabAcc, SDI_F->sensorTresholds.grabSlip);
+  }
+
+return ETHER;
+}
+
+/* pr2SoftMotionMoveHeadEnd  -  codel START of MoveHead
+   Returns:  START EXEC END ETHER FAIL ZOMBIE */
+ACTIVITY_EVENT
+pr2SoftMotionGripperGrabReleaseEnd(PR2SM_gripperGrabRelease *mode, int *report)
+{
+  // ... add your code here ...
+  return ETHER;
+}
 

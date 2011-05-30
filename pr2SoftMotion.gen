@@ -34,6 +34,7 @@
  *  Description:
  *  Creation date : Thu Feb 10 13:04:35 2011 
  *  Author: Xavier Broquere
+ *  Modified by: Guido Manfredi
  * 
  *------------------------------------------------------------*/
 
@@ -80,6 +81,8 @@ typedef struct PR2SOFTMOTION_STR {
     double jerkAccelerationRatio;
     PR2SM_QSTR qGoto;
     PR2SM_xyzHead xyzHead;
+    PR2SM_gripperGrabRelease grabRelease;
+    PR2SM_gripperSensorTresh sensorTresholds;
 } PR2SOFTMOTION_STR;
 
 
@@ -170,6 +173,19 @@ request MoveHead {
     codel_end:		    pr2SoftMotionMoveHeadEnd;
     fail_reports:           NOT_INITIALIZED, SOFTMOTION_ERROR; 
     interrupt_activity:	    MoveHead; 
+};
+
+request GripperGrabRelease {
+    doc:		    "<some doc>";
+    type:		    exec;
+    exec_task:		    Main; 
+    input:		    grabRelease::grabRelease; 
+    input_info:		    grab::"mode"; 
+    codel_start:	    pr2SoftMotionGripperGrabReleaseStart;
+    codel_main:		    pr2SoftMotionGripperGrabReleaseMain;
+    codel_end:		    pr2SoftMotionGripperGrabReleaseEnd;
+    fail_reports:           NOT_INITIALIZED, SOFTMOTION_ERROR; 
+    interrupt_activity:	    GripperGrabRelease; 
 };
 /*------------------------------------------------------------
  *	                        Posters

@@ -20,7 +20,8 @@ all: codels-mk-all
 codels_src = \
 	pr2SoftMotionMainCodels.cc \
 	pr2SoftMotionCntrlTaskCodels.cc \
-        ControllerAmbassador.cc
+        ControllerAmbassador.cc \
+        GripperSensorMonitor.cc
 
 # Add extra flags for the preprocessor (external libraries, ...)
 EXTRA_INCLUDES += \
@@ -50,7 +51,8 @@ EXTRA_INCLUDES += \
   -I/opt/ros/cturtle/stacks/geometry/tf/srv/cpp \
   -I/opt/ros/cturtle/stacks/geometry/tf/msg_gen/cpp/include \
   -I/opt/ros/cturtle/stacks/geometry/tf/srv_gen/cpp/include \
-  -I/opt/ros/cturtle/stacks/geometry/bullet/include
+  -I/opt/ros/cturtle/stacks/geometry/bullet/include \
+  -I/opt/ros/cturtle/stacks/pr2_object_manipulation/pr2_gripper_sensor_msgs/msg_gen/cpp/include
 
 #
 # Add extra link flags (external libraries, ...)
@@ -61,9 +63,13 @@ EXTRA_LIBS += \
 	-Wl,-rpath,/opt/ros/cturtle/stacks/common/actionlib/lib \
         -Wl,-rpath,/opt/ros/cturtle/stacks/geometry/tf/lib \
 	-Wl,-rpath,/opt/ros/cturtle/stacks/geometry/bullet/lib \
+        -Wl,-rpath,/opt/ros/cturtle/stacks/pr2_controllers/pr2_mechanism_controllers/lib \
+        -Wl,-rpath,/opt/ros/cturtle/stacks/pr2_controllers/robot_mechanism_controllers/lib \
 	-L/opt/ros/cturtle/ros/core/roscpp/lib -lros \
 	-L/opt/ros/cturtle/stacks/geometry/tf/lib -ltf \
-   	-L/opt/ros/cturtle/stacks/geometry/bullet/lib -lLinearMath
+   	-L/opt/ros/cturtle/stacks/geometry/bullet/lib -lLinearMath \
+   	-L/opt/ros/cturtle/stacks/common/actionlib/lib -lactionlib \
+        
   
 
 

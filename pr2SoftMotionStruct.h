@@ -86,4 +86,17 @@ typedef struct PR2SM_xyzHead {
   char frame[56];
 } PR2SM_xyzHead;
 
+
+typedef enum PR2SM_gripperGrabRelease {
+  PR2SM_GRAB,
+  PR2SM_RELEASE
+} PR2SM_gripperGrabRelease;
+
+typedef struct PR2SM_gripperSensorTresh {
+  double grabHardness;
+  double grabAcc;
+  double grabSlip;
+  double releaseAcc;
+  double releaseSlip;
+} PR2SM_gripperSensorTresh;
 #endif
