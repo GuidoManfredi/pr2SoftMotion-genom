@@ -51,6 +51,7 @@ static ros::NodeHandle* nh;
 static ControllerAmbassador* rArmAmbassador; 
 static ControllerAmbassador* lArmAmbassador; 
 static ControllerAmbassador* headAmbassador; 
+static ControllerAmbassador* pr2SynAmbassador; 
 
 static ros::Publisher pan_head_pub;
 static ros::Publisher tilt_head_pub;
@@ -128,6 +129,7 @@ pr2SoftMotionInitMain(int *report)
   rArmAmbassador = new ControllerAmbassador(PR2SM_RARM, nh);
   lArmAmbassador = new ControllerAmbassador(PR2SM_LARM, nh);
   headAmbassador = new ControllerAmbassador(PR2SM_HEAD, nh);
+  pr2SynAmbassador = new ControllerAmbassador(PR2SM_PR2SYN, nh);
 
   r_gripperSensorMonitor = new GripperSensorMonitor();
 
@@ -220,7 +222,13 @@ pr2SoftMotionTrackQStart(PR2SM_TRACK_STR *trackStr, int *report)
       case PR2SM_HEAD:
         headAmbassador->trackQ(&smTraj, report);
         break;
+      case PR2SM_PR2SYN:
+        pr2SynAmbassador->trackQ(&smTraj, report);
+        break;
       case PR2SM_PR2:
+        rArmAmbassador->trackQ(&smTraj, report);
+        lArmAmbassador->trackQ(&smTraj, report);
+        headAmbassador->trackQ(&smTraj, report);
         break;
       default:
         printf("Error: unknown robot part. Motion cancelled.\n");
@@ -251,7 +259,12 @@ pr2SoftMotionTrackQMain(PR2SM_TRACK_STR *trackStr, int *report)
     case PR2SM_HEAD:
       finished= headAmbassador->monitorTraj();
       break;
-    case PR2SM_PR2:
+    case PR2SM_PR2SYN:
+      finished= pr2SynAmbassador->monitorTraj();
+      break;
+    case PR2SM_PR2: 
+      // we choose the slower joint, so a arm
+      finished= lArmAmbassador->monitorTraj();
       break;
     default:
       printf("Error: unknown robot part. Motion cancelled.\n");
@@ -305,7 +318,17 @@ pr2SoftMotionGotoQStart(PR2SM_QSTR *qGoto, int *report)
       break;
     case PR2SM_TORSO:
       break;
+    case PR2SM_PR2SYN:
+      pr2SynAmbassador->setRatios(SDI_F->accelerationVelRatio, SDI_F->jerkAccelerationRatio);
+      pr2SynAmbassador->gotoQ(qGoto, report);
+      break;
     case PR2SM_PR2:
+      headAmbassador->setRatios(SDI_F->accelerationVelRatio, SDI_F->jerkAccelerationRatio);
+      headAmbassador->gotoQ(qGoto, report);
+      rArmAmbassador->setRatios(SDI_F->accelerationVelRatio, SDI_F->jerkAccelerationRatio);
+      rArmAmbassador->gotoQ(qGoto, report);
+      lArmAmbassador->setRatios(SDI_F->accelerationVelRatio, SDI_F->jerkAccelerationRatio);
+      lArmAmbassador->gotoQ(qGoto, report);
       break;
     default:
       printf("Error: unknown robot part. Motion cancelled.\n");
