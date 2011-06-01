@@ -124,6 +124,13 @@ request SetJerkRatio {
 	input_info:	3.0::"jerkRatio";	
 };
 
+request SetGripperTresholds {
+    doc:                    "Set the grab/release tresholds for acceleration and slip";
+    type:                   control;
+    input:                  sensorTresholds::sensorTresholds;
+    input_info:             4.0::"grabAcc", 0.05::"grabSlip", 4.0::"releaseAcc", 0.05::"releaseSlip";
+};
+
 /*  */
 request SetTimeScale {
     doc:		    "Set the velocity of the time evolution along the trajectory";

@@ -19,9 +19,6 @@
 #include <vector>
 #include <string>
 
-
-
-
 class ControllerAmbassador
 {
 public:
