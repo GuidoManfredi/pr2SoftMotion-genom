@@ -176,16 +176,16 @@ request MoveHead {
 };
 
 request GripperGrabRelease {
-    doc:		    "<some doc>";
-    type:		    exec;
-    exec_task:		    Main; 
-    input:		    grabRelease::grabRelease; 
-    input_info:		    grab::"mode"; 
-    codel_start:	    pr2SoftMotionGripperGrabReleaseStart;
-    codel_main:		    pr2SoftMotionGripperGrabReleaseMain;
-    codel_end:		    pr2SoftMotionGripperGrabReleaseEnd;
-    fail_reports:           NOT_INITIALIZED, SOFTMOTION_ERROR; 
-    interrupt_activity:	    GripperGrabRelease; 
+    doc:                    "<some doc>";
+    type:                   exec;
+    exec_task:              Main;
+    input:                  grabRelease::grabRelease;
+    input_info:             PR2SM_OPEN::"mode";
+    codel_start:            pr2SoftMotionGripperGrabReleaseStart;
+    codel_main:             pr2SoftMotionGripperGrabReleaseMain;
+    codel_end:              pr2SoftMotionGripperGrabReleaseEnd;
+    fail_reports:           NOT_INITIALIZED, SOFTMOTION_ERROR;
+    interrupt_activity:     GripperGrabRelease;
 };
 /*------------------------------------------------------------
  *	                        Posters

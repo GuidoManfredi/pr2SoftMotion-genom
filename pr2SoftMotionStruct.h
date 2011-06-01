@@ -36,11 +36,18 @@
 typedef enum PR2SM_ROBOT_PART_ENUM {
   PR2SM_PR2,
   PR2SM_PR2SYN,
-  PR2SM_RARM,
-  PR2SM_LARM,
+  PR2SM_TORSO,
   PR2SM_HEAD,
-  PR2SM_TORSO
+  PR2SM_RARM,
+  PR2SM_LARM
 } PR2SM_ROBOT_PART_ENUM;
+
+typedef enum PR2SM_gripperGrabRelease {
+  PR2SM_GRAB,
+  PR2SM_RELEASE,
+  PR2SM_OPEN,
+  PR2SM_CLOSE
+} PR2SM_gripperGrabRelease;
 
 typedef enum PR2SM_TRACK_MODE_ENUM {
   PR2SM_TRACK_FILE,
@@ -87,14 +94,7 @@ typedef struct PR2SM_xyzHead {
   char frame[56];
 } PR2SM_xyzHead;
 
-
-typedef enum PR2SM_gripperGrabRelease {
-  PR2SM_GRAB,
-  PR2SM_RELEASE
-} PR2SM_gripperGrabRelease;
-
 typedef struct PR2SM_gripperSensorTresh {
-  double grabHardness;
   double grabAcc;
   double grabSlip;
   double releaseAcc;

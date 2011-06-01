@@ -23,6 +23,8 @@ codels_src = \
         ControllerAmbassador.cc \
         GripperSensorMonitor.cc
 
+#echo $(ROS_PACKAGE_PATH)
+
 # Add extra flags for the preprocessor (external libraries, ...)
 EXTRA_INCLUDES += \
   -I/opt/ros/cturtle/ros/core/roscpp/include \
@@ -42,8 +44,8 @@ EXTRA_INCLUDES += \
   -I/opt/ros/cturtle/stacks/pr2_controllers/trajectory_msgs/msg_gen/cpp/include \
   -I/opt/ros/cturtle/stacks/pr2_controllers/pr2_controllers_msgs/msg_gen/cpp/include \
   -I/opt/ros/cturtle/stacks/pr2_controllers/pr2_controllers_msgs/srv_gen/cpp/include \
-  -I/u/gmanfred/ros_overlay/sandbox/pr2_soft_controller/include \
-  -I/u/gmanfred/ros_overlay/sandbox/pr2_soft_controller/msg_gen/cpp/include \
+  -I${HOME}/ros_overlay/release/soft_controllers/pr2_soft_controller/include \
+  -I${HOME}/ros_overlay/release/soft_controllers/pr2_soft_controller/msg_gen/cpp/include \
   -I/opt/ros/cturtle/ros/std_msgs/include \
   -I/opt/ros/cturtle/ros/std_msgs/msg_gen/cpp/include \
   -I/opt/ros/cturtle/stacks/geometry/tf/include \
