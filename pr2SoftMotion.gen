@@ -73,6 +73,7 @@ import from genManip {
 
 typedef struct PR2SOFTMOTION_STR {
     GEN_BOOL isInit;
+    GEN_BOOL holdSmthg;
     PR2SM_TRACK_STR trackStr;
     GEN_BOOL motionIsAllowed;
     double timeScale;
@@ -83,6 +84,9 @@ typedef struct PR2SOFTMOTION_STR {
     PR2SM_xyzHead xyzHead;
     PR2SM_gripperGrabRelease grabRelease;
     PR2SM_gripperSensorTresh sensorTresholds;
+    GENHUM_HUMAN_DISTANCE humanDist;
+    GEN_STRING128 humanDistPosterName;
+    GEN_BOOL humanDistMode;
 } PR2SOFTMOTION_STR;
 
 
@@ -90,9 +94,17 @@ typedef struct PR2SOFTMOTION_STR {
  *	                       Requests
  *------------------------------------------------------------*/
 
+/* Read current state of the gripper */
+request HoldSmthg {
+        doc:                    "Return true if the right gripper is holding an object. False in other cases.";
+        type:                   control;
+        output:                 holdSmthg::holdSmthg;
+        interrupt_activity:     none;
+};
+
 /*  */
 request Init {
-    doc:		    "<some doc>";
+    doc:		    "Initialize module";
     type:		    init;
     exec_task:		    Main; 
     codel_main:		    pr2SoftMotionInitMain;
@@ -103,14 +115,14 @@ request Init {
 
 /*  */
 request SetSpeedLimit {
-    doc:		    "<some doc>";
+    doc:		    "Set the maximum speed (used to compute the maximum acceleration and jerk)";
     type:		    control;
     input:		    speedLimit::speedLimit;
     input_info:		    0.5::"speedLimit";
 };
 
 request SetAccelRatio {
-	doc:	"<some doc>";
+	doc:	"Set the acceleration threshold for contact detection";
 	type:	control;
 	input:	accelerationVelRatio::accelerationVelRatio;
 	input_info:	2.0::"accelRatio";
@@ -144,7 +156,7 @@ request SetTimeScale {
 
 /*  */
 request TrackQ {
-    doc:		    "<some doc>";
+    doc:		    "Execute the trajectory written in a file/poster";
     type:		    exec;
     exec_task:		    Main; 
     input:		    posterName::trackStr; 
@@ -158,7 +170,7 @@ request TrackQ {
 };
 
 request GotoQ {
-    doc:		    "<some doc>";
+    doc:		    "Go from the current position to the given position";
     type:		    exec;
     exec_task:		    Main; 
     input:		    qGoto::qGoto; 
@@ -170,7 +182,7 @@ request GotoQ {
 };
 
 request MoveHead {
-    doc:		    "<some doc>";
+    doc:		    "Look at given x y z";
     type:		    exec;
     exec_task:		    Main; 
     input:		    xyzHead::xyzHead; 
@@ -183,7 +195,7 @@ request MoveHead {
 };
 
 request GripperGrabRelease {
-    doc:                    "<some doc>";
+    doc:                    "Allows to command the gripper and use adaptive grasping";
     type:                   exec;
     exec_task:              Main;
     input:                  grabRelease::grabRelease;
@@ -194,6 +206,29 @@ request GripperGrabRelease {
     fail_reports:           NOT_INITIALIZED, SOFTMOTION_ERROR;
     interrupt_activity:     GripperGrabRelease;
 };
+
+/* SetHumanDistancePoster for timeScale */
+request SetHumanDistancePoster {
+    doc:                    "<some doc>";
+    type:                   exec;
+    exec_task:              Main;
+    input:                  humanDistPosterName::humanDistPosterName;
+    input_info:             "spark"::"posterName";
+    posters_input:          GENHUM_HUMAN_DISTANCE;
+    codel_main:             pr2SoftMotionSetHumanDistancePosterMain;
+    fail_reports:           CANNOT_FIND_POSTER, CANNOT_READ_POSTER;
+    interrupt_activity:     SetHumanDistancePoster;
+};
+
+/*  */
+request SetHumanDistanceMode {
+    doc:                    "<some doc>";
+    type:                   control;
+    input:                  humanDistMode::humanDistMode;
+    input_info:             GEN_TRUE::"mode";
+    interrupt_activity:     SetHumanDistanceMode;
+};
+
 /*------------------------------------------------------------
  *	                        Posters
  *------------------------------------------------------------*/

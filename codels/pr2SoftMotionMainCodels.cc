@@ -44,7 +44,8 @@
 #include "ControllerAmbassador.h"
 #include "GripperSensorMonitor.h"
 
-static POSTER_ID pr2Trackposter = NULL; /* the poster to load */ 
+static POSTER_ID pr2Trackposter = NULL; /* the poster with a trajectyory to execute */ 
+static POSTER_ID posterHumDistId = NULL; /* the poster with the human distance */
 static SM_TRAJ currentMotion; /* the softMotion trajectory */
 
 static ros::NodeHandle* nh;
@@ -57,7 +58,16 @@ static ControllerAmbassador* pr2SynAmbassador;
 static ros::Publisher pan_head_pub;
 static ros::Publisher tilt_head_pub;
 
+static ros::Subscriber gripper_state_sub;
 static GripperSensorMonitor* r_gripperSensorMonitor;
+
+void contactStateCB(const pr2_gripper_sensor_msgs::PR2GripperFindContactDataConstPtr& msg)
+{
+  if(msg->left_fingertip_pad_contact && msg->right_fingertip_pad_contact)
+    SDI_F->holdSmthg= GEN_TRUE; 
+  else 
+    SDI_F->holdSmthg= GEN_FALSE; 
+}
 
 /*------------------------------------------------------------------------
  *
@@ -139,6 +149,7 @@ pr2SoftMotionInitMain(int *report)
 
   pan_head_pub= nh->advertise<std_msgs::Float64>("pan_head_soft_controller/command", 1);
   tilt_head_pub= nh->advertise<std_msgs::Float64>("tilt_head_soft_controller/command", 1);
+  gripper_state_sub= nh->subscribe<pr2_gripper_sensor_msgs::PR2GripperFindContactData>("r_gripper_sensor_controller/contact_state", 1, contactStateCB); 
 
   if(pr2SoftMotionSM_TRAJ_STRPosterFind ("mhpArmTraj", &pr2Trackposter) != OK) {
       *report = S_pr2SoftMotion_POSTER_NOT_FOUND;
@@ -491,7 +502,7 @@ pr2SoftMotionGripperGrabReleaseMain(PR2SM_gripperGrabRelease *mode, int *report)
 return ETHER;
 }
 
-/* pr2SoftMotionGripperGrabReleaseEnd  -  codel START of MoveHead
+/* pr2SoftMotionGripperGrabReleaseEnd  -  codel START of GrabRelease
    Returns:  START EXEC END ETHER FAIL ZOMBIE */
 ACTIVITY_EVENT
 pr2SoftMotionGripperGrabReleaseEnd(PR2SM_gripperGrabRelease *mode, int *report)
@@ -499,3 +510,35 @@ pr2SoftMotionGripperGrabReleaseEnd(PR2SM_gripperGrabRelease *mode, int *report)
   // ... add your code here ...
   return ETHER;
 }
+
+/*------------------------------------------------------------------------
+ * SetHumanDistancePoster
+ *
+ * Description: 
+ *
+ * Reports:      OK
+ *              S_pr2SoftMotion_CANNOT_FIND_POSTER
+ *              S_pr2SoftMotion_CANNOT_READ_POSTER
+ */
+
+/* pr2SoftMotionSetHumanDistancePosterMain  -  codel EXEC of SetHumanDistancePoster
+   Returns:  EXEC END ETHER FAIL ZOMBIE */
+ACTIVITY_EVENT
+pr2SoftMotionSetHumanDistancePosterMain(GEN_STRING128 *humanDistPosterName, int *report)
+{
+  /* Find the external poster and try it by reading once */
+ if(pr2SoftMotionGENHUM_HUMAN_DISTANCEPosterFind(humanDistPosterName->name,
+                                      &posterHumDistId) == ERROR) {
+    *report =  S_pr2SoftMotion_CANNOT_FIND_POSTER;
+  }
+  else if(pr2SoftMotionGENHUM_HUMAN_DISTANCEPosterRead(posterHumDistId,
+                                           &SDI_F->humanDist) == ERROR) {
+    *report =  S_pr2SoftMotion_CANNOT_READ_POSTER;
+  }
+  else {
+    *report = OK;
+  }
+
+  return ETHER;
+}
+

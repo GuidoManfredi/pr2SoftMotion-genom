@@ -42,7 +42,3 @@ pr2SoftMotionSetTimeScaleCntrl(double *timeScale, int *report)
   }
   return OK;
 }
-
-
-
-
