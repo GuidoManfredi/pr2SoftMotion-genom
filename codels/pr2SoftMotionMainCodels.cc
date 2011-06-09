@@ -58,16 +58,7 @@ static ControllerAmbassador* pr2SynAmbassador;
 static ros::Publisher pan_head_pub;
 static ros::Publisher tilt_head_pub;
 
-static ros::Subscriber gripper_state_sub;
 static GripperSensorMonitor* r_gripperSensorMonitor;
-
-void contactStateCB(const pr2_gripper_sensor_msgs::PR2GripperFindContactDataConstPtr& msg)
-{
-  if(msg->left_fingertip_pad_contact && msg->right_fingertip_pad_contact)
-    SDI_F->holdSmthg= GEN_TRUE; 
-  else 
-    SDI_F->holdSmthg= GEN_FALSE; 
-}
 
 /*------------------------------------------------------------------------
  *
@@ -143,13 +134,17 @@ pr2SoftMotionInitMain(int *report)
   lArmAmbassador = new ControllerAmbassador(PR2SM_LARM, nh);
   pr2SynAmbassador = new ControllerAmbassador(PR2SM_PR2SYN, nh);
 
-  r_gripperSensorMonitor = new GripperSensorMonitor();
+  r_gripperSensorMonitor = new GripperSensorMonitor(nh);
+  SDI_F->sensorTresholds.grabAcc= 4.0;
+  SDI_F->sensorTresholds.grabSlip= 0.05;
+  SDI_F->sensorTresholds.releaseAcc= 4.0;
+  SDI_F->sensorTresholds.releaseSlip= 0.05;
+
 
   SDI_F->isInit = GEN_TRUE;
 
   pan_head_pub= nh->advertise<std_msgs::Float64>("pan_head_soft_controller/command", 1);
   tilt_head_pub= nh->advertise<std_msgs::Float64>("tilt_head_soft_controller/command", 1);
-  gripper_state_sub= nh->subscribe<pr2_gripper_sensor_msgs::PR2GripperFindContactData>("r_gripper_sensor_controller/contact_state", 1, contactStateCB); 
 
   if(pr2SoftMotionSM_TRAJ_STRPosterFind ("mhpArmTraj", &pr2Trackposter) != OK) {
       *report = S_pr2SoftMotion_POSTER_NOT_FOUND;
@@ -465,7 +460,6 @@ pr2SoftMotionMoveHeadEnd(PR2SM_xyzHead *xyzHead, int *report)
 ACTIVITY_EVENT
 pr2SoftMotionGripperGrabReleaseStart(PR2SM_gripperGrabRelease *mode, int *report)
 {
-  r_gripperSensorMonitor = new GripperSensorMonitor();
   return EXEC;
 }
 
@@ -493,7 +487,7 @@ pr2SoftMotionGripperGrabReleaseMain(PR2SM_gripperGrabRelease *mode, int *report)
       break;
     case PR2SM_CLOSE:
       printf("Closing gripper.\n");
-      r_gripperSensorMonitor->findTwoContacts();
+      r_gripperSensorMonitor->close(SDI_F->sensorTresholds.holdForce);
       break;
     default:
       printf("Error: Unrecognized gripper mode\n");

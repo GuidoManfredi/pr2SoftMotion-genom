@@ -87,6 +87,11 @@ bool ControllerAmbassador::gotoQ(PR2SM_QSTR *qGoto, int *report)
 
 bool ControllerAmbassador::monitorTraj()
 {
+  //Publish timescale in case it changed
+  std_msgs::Float64 timescale;
+  timescale.data= SDI_F->timeScale;
+  timescale_pub_.publish(timescale);
+
   //printf("Time from start: %f\n", time_from_start_);
   //printf("Motion duration: %f\n", motionDuration_);
 
@@ -206,11 +211,6 @@ void ControllerAmbassador::loadTraj(SM_TRAJ_STR *smTraj, int debut, int fin)
 
 void ControllerAmbassador::sendTraj()
 {
-  std_msgs::Float64 timescale;
-  timescale.data= SDI_F->timeScale;
-
-  //printf("Trajectory duration: %f\n", motionDuration_);
-  timescale_pub_.publish(timescale);
   command_pub_.publish(smTrajROS_);
 }
 

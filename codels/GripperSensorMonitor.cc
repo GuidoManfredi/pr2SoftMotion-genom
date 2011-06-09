@@ -1,6 +1,6 @@
 #include "GripperSensorMonitor.h"
 
-GripperSensorMonitor::GripperSensorMonitor(){
+GripperSensorMonitor::GripperSensorMonitor(ros::NodeHandle* nh){
 
     //Initialize the client for the Action interface to the gripper controller
     //and tell the action client that we want to spin a thread by default
@@ -8,7 +8,7 @@ GripperSensorMonitor::GripperSensorMonitor(){
     contact_client_  = new ContactClient("r_gripper_sensor_controller/find_contact",true);
     slip_client_  = new SlipClient("r_gripper_sensor_controller/slip_servo",true);
     event_detector_client_  = new EventDetectorClient("r_gripper_sensor_controller/event_detector",true);
-
+    force_client_  = new ForceClient("r_gripper_sensor_controller/force_servo",true);
 
     //wait for the gripper action server to come up 
     while(!gripper_client_->waitForServer(ros::Duration(5.0))){
@@ -25,7 +25,18 @@ GripperSensorMonitor::GripperSensorMonitor(){
 
     while(!event_detector_client_->waitForServer(ros::Duration(5.0))){
       ROS_INFO("Waiting for the r_gripper_sensor_controller/event_detector action server to come up");
+    } 
+
+    while(!force_client_->waitForServer(ros::Duration(5.0))){
+      ROS_INFO("Waiting for the r_gripper_sensor_controller/force_servo action server to come up");
     }
+
+  gripper_state_sub_= nh->subscribe("r_gripper_sensor_controller/contact_state", 1, &GripperSensorMonitor::contactStateCB, this);
+  gripper_position_sub_= nh->subscribe("r_gripper_controller/state", 1, &GripperSensorMonitor::positionCB, this);
+
+  //default values, they doesn't really  mean something.
+  padContact_ = false;
+  handClosed_ = false;
 }
 
 GripperSensorMonitor::~GripperSensorMonitor(){
@@ -33,6 +44,7 @@ GripperSensorMonitor::~GripperSensorMonitor(){
     delete contact_client_;
     delete slip_client_;
     delete event_detector_client_;
+    delete force_client_;
 }
 
 //Open the gripper, find contact on both fingers, and go into slip-servo control mode
@@ -71,6 +83,12 @@ bool GripperSensorMonitor::open(){
       ROS_INFO("The gripper failed to open.");
       return false;
     }
+}
+
+bool GripperSensorMonitor::close(double holdForce){
+  if( findTwoContacts() ) {
+    return hold(holdForce);
+  }
 }
 
   //Find two contacts on the robot gripper
@@ -130,4 +148,56 @@ bool GripperSensorMonitor::detect(double accT, double slipT){
       ROS_INFO("Contact detection failure");
       return false;
     }
+}
+
+bool GripperSensorMonitor::hold(double holdForce){
+  pr2_gripper_sensor_msgs::PR2GripperForceServoGoal squeeze;
+  squeeze.command.fingertip_force = holdForce;   // hold with X N of force
+    
+  ROS_INFO("Sending hold goal");
+  force_client_->sendGoal(squeeze);
+  force_client_->waitForResult();
+  if(force_client_->getState() == actionlib::SimpleClientGoalState::SUCCEEDED){
+    ROS_INFO("Stable force was achieved");
+    return true;
+  }
+  else{
+    ROS_INFO("Stable force was NOT achieved");
+    return false;
+  }
+}
+
+void GripperSensorMonitor::contactStateCB(const pr2_gripper_sensor_msgs::PR2GripperFindContactDataConstPtr& msg)
+{
+  if(msg->left_fingertip_pad_contact && msg->right_fingertip_pad_contact){
+    //printf("Contact on pads\n");
+    padContact_= true;
+  }
+  else{
+    //printf("No contact on pads\n");
+    padContact_= false;
+  }
+
+  if(padContact_ && !handClosed_)
+    SDI_F->holdSmthg= GEN_TRUE;
+  else
+    SDI_F->holdSmthg= GEN_FALSE;
+}
+
+void  GripperSensorMonitor::positionCB(const pr2_controllers_msgs::JointControllerStateConstPtr& msg)
+{
+  // 0.0028 is the value when the gripper is closed 
+  if( msg->process_value <= 0.0032){
+    //printf("Hand closed\n");
+    handClosed_ = true;
+  }
+  else{
+    //printf("Hand still open\n");
+    handClosed_ = false;
+  }
+
+  if(padContact_ && !handClosed_)
+    SDI_F->holdSmthg= GEN_TRUE;
+  else
+    SDI_F->holdSmthg= GEN_FALSE;   
 }

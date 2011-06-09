@@ -99,5 +99,6 @@ typedef struct PR2SM_gripperSensorTresh {
   double grabSlip;
   double releaseAcc;
   double releaseSlip;
+  double holdForce;
 } PR2SM_gripperSensorTresh;
 #endif

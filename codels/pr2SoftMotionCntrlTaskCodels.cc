@@ -9,7 +9,7 @@
  **/
 
 #include <portLib.h>
-
+#include <ros/ros.h>
 #include "server/pr2SoftMotionHeader.h"
 
 
@@ -40,5 +40,24 @@ pr2SoftMotionSetTimeScaleCntrl(double *timeScale, int *report)
     *report = S_pr2SoftMotion_WRONG_VALUE;
     return OK;
   }
+  return OK;
+}
+
+
+/*------------------------------------------------------------------------
+ * pr2SoftMotionHoldSmthgCntrl  -  control codel of CONTROL request HoldSmthg
+ *
+ * Description:    
+ * Report: OK
+ *                 S_pr2SoftMotion_WRONG_VALUE
+ *
+ * Returns:    OK or ERROR
+ */
+
+STATUS
+pr2SoftMotionHoldSmthgCntrl(int *report)
+{
+  ros::spinOnce();
+
   return OK;
 }
