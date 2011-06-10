@@ -200,7 +200,7 @@ request GripperGrabRelease {
     type:                   exec;
     exec_task:              Main;
     input:                  grabRelease::grabRelease;
-    input_info:             PR2SM_OPEN::"mode";
+    input_info:             OPEN::"mode";
     codel_start:            pr2SoftMotionGripperGrabReleaseStart;
     codel_main:             pr2SoftMotionGripperGrabReleaseMain;
     codel_end:              pr2SoftMotionGripperGrabReleaseEnd;

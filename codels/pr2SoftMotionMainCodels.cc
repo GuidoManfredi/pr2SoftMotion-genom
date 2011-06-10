@@ -128,11 +128,11 @@ pr2SoftMotionInitMain(int *report)
 
   nh= new ros::NodeHandle(); 
 
-  headAmbassador = new ControllerAmbassador(PR2SM_HEAD, nh);
-  torsoAmbassador = new ControllerAmbassador(PR2SM_TORSO, nh);
-  rArmAmbassador = new ControllerAmbassador(PR2SM_RARM, nh);
-  lArmAmbassador = new ControllerAmbassador(PR2SM_LARM, nh);
-  pr2SynAmbassador = new ControllerAmbassador(PR2SM_PR2SYN, nh);
+  headAmbassador = new ControllerAmbassador(HEAD, nh);
+  torsoAmbassador = new ControllerAmbassador(TORSO, nh);
+  rArmAmbassador = new ControllerAmbassador(RARM, nh);
+  lArmAmbassador = new ControllerAmbassador(LARM, nh);
+  pr2SynAmbassador = new ControllerAmbassador(PR2SYN, nh);
 
   r_gripperSensorMonitor = new GripperSensorMonitor(nh);
   SDI_F->sensorTresholds.grabAcc= 4.0;
@@ -221,22 +221,22 @@ pr2SoftMotionTrackQStart(PR2SM_TRACK_STR *trackStr, int *report)
 
   if(SDI_F->motionIsAllowed == GEN_TRUE) {
     switch(trackStr->robotPart){
-      case PR2SM_TORSO:
+      case TORSO:
         torsoAmbassador->trackQ(&smTraj, report);
         break;
-      case PR2SM_HEAD:
+      case HEAD:
         headAmbassador->trackQ(&smTraj, report);
         break;
-      case PR2SM_RARM:
+      case RARM:
         rArmAmbassador->trackQ(&smTraj, report);
         break;
-      case PR2SM_LARM:
+      case LARM:
         lArmAmbassador->trackQ(&smTraj, report);
         break;
-      case PR2SM_PR2SYN:
+      case PR2SYN:
         pr2SynAmbassador->trackQ(&smTraj, report);
         break;
-      case PR2SM_PR2:
+      case PR2:
         torsoAmbassador->trackQ(&smTraj, report);
         headAmbassador->trackQ(&smTraj, report);
         rArmAmbassador->trackQ(&smTraj, report);
@@ -262,22 +262,22 @@ pr2SoftMotionTrackQMain(PR2SM_TRACK_STR *trackStr, int *report)
   bool finished= false;
 
   switch(trackStr->robotPart){
-    case PR2SM_HEAD:
+    case HEAD:
       finished= headAmbassador->monitorTraj();
       break;
-    case PR2SM_TORSO:
+    case TORSO:
       finished= torsoAmbassador->monitorTraj();
       break;
-    case PR2SM_RARM:
+    case RARM:
       finished= rArmAmbassador->monitorTraj();
       break;
-    case PR2SM_LARM:
+    case LARM:
       finished= lArmAmbassador->monitorTraj();
       break;
-    case PR2SM_PR2SYN:
+    case PR2SYN:
       finished= pr2SynAmbassador->monitorTraj();
       break;
-    case PR2SM_PR2: 
+    case PR2: 
       // we choose the slower joint, so the torso
       finished= torsoAmbassador->monitorTraj();
       break;
@@ -319,27 +319,27 @@ ACTIVITY_EVENT
 pr2SoftMotionGotoQStart(PR2SM_QSTR *qGoto, int *report)
 {
   switch(qGoto->robotPart){
-    case PR2SM_TORSO:
+    case TORSO:
       torsoAmbassador->setRatios(SDI_F->accelerationVelRatio, SDI_F->jerkAccelerationRatio);
       torsoAmbassador->gotoQ(qGoto, report);
       break;
-    case PR2SM_HEAD:
+    case HEAD:
       headAmbassador->setRatios(SDI_F->accelerationVelRatio, SDI_F->jerkAccelerationRatio);
       headAmbassador->gotoQ(qGoto, report);
       break;
-    case PR2SM_RARM:
+    case RARM:
       rArmAmbassador->setRatios(SDI_F->accelerationVelRatio, SDI_F->jerkAccelerationRatio);
       rArmAmbassador->gotoQ(qGoto, report);
       break;
-    case PR2SM_LARM:
+    case LARM:
       lArmAmbassador->setRatios(SDI_F->accelerationVelRatio, SDI_F->jerkAccelerationRatio);
       lArmAmbassador->gotoQ(qGoto, report);
       break;
-    case PR2SM_PR2SYN:
+    case PR2SYN:
       pr2SynAmbassador->setRatios(SDI_F->accelerationVelRatio, SDI_F->jerkAccelerationRatio);
       pr2SynAmbassador->gotoQ(qGoto, report);
       break;
-    case PR2SM_PR2:
+    case PR2:
       torsoAmbassador->setRatios(SDI_F->accelerationVelRatio, SDI_F->jerkAccelerationRatio);
       torsoAmbassador->gotoQ(qGoto, report);
       headAmbassador->setRatios(SDI_F->accelerationVelRatio, SDI_F->jerkAccelerationRatio);
@@ -360,6 +360,32 @@ pr2SoftMotionGotoQStart(PR2SM_QSTR *qGoto, int *report)
 ACTIVITY_EVENT
 pr2SoftMotionGotoQMain(PR2SM_QSTR *qGoto, int *report)
 {
+  //Timescale is published again (manually) in case it has changed
+  switch(qGoto->robotPart){
+    case TORSO:
+      torsoAmbassador->publishTimeScale();
+      break;
+    case HEAD:
+      headAmbassador->publishTimeScale();
+      break;
+    case RARM:
+      rArmAmbassador->publishTimeScale();
+      break;
+    case LARM:
+      lArmAmbassador->publishTimeScale();
+      break;
+    case PR2SYN:
+      pr2SynAmbassador->publishTimeScale();
+      break;
+    case PR2:
+      torsoAmbassador->publishTimeScale();
+      headAmbassador->publishTimeScale();
+      rArmAmbassador->publishTimeScale();
+      lArmAmbassador->publishTimeScale();
+      break;
+    default:
+      printf("Error: unknown robot part. Motion cancelled.\n");
+  } 
 
   return ETHER;
 }
@@ -473,19 +499,19 @@ pr2SoftMotionGripperGrabReleaseMain(PR2SM_gripperGrabRelease *mode, int *report)
 
   switch(*mode)
   {
-    case PR2SM_RELEASE:
+    case RELEASE:
       printf("Ready to release.\n");
       r_gripperSensorMonitor->release(SDI_F->sensorTresholds.releaseAcc, SDI_F->sensorTresholds.releaseSlip);
       break;
-    case PR2SM_GRAB:
+    case GRAB:
       printf("Ready to grab.\n");
       r_gripperSensorMonitor->grab(SDI_F->sensorTresholds.grabAcc, SDI_F->sensorTresholds.grabSlip);
       break;
-    case PR2SM_OPEN:
+    case OPEN:
       printf("Openning gripper.\n");
       r_gripperSensorMonitor->open();
       break;
-    case PR2SM_CLOSE:
+    case CLOSE:
       printf("Closing gripper.\n");
       r_gripperSensorMonitor->close(SDI_F->sensorTresholds.holdForce);
       break;

@@ -5,35 +5,35 @@ ControllerAmbassador::ControllerAmbassador(PR2SM_ROBOT_PART_ENUM robotPart, ros:
   robotPart_ = robotPart;
 
   switch (robotPart){
-    case PR2SM_TORSO:
+    case TORSO:
       command_pub_= nh->advertise<pr2_soft_controller::SM_TRAJ_STR_ROS>("torso_soft_controller/command", 1);
       timescale_pub_= nh->advertise<std_msgs::Float64>("torso_soft_controller/timescale", 1);
       state_sub_= nh->subscribe("torso_soft_controller/state", 1, &ControllerAmbassador::saveTimeCB, this);
       debut_ = 0;
       fin_ = 0;
       break;
-    case PR2SM_HEAD:
+    case HEAD:
       command_pub_= nh->advertise<pr2_soft_controller::SM_TRAJ_STR_ROS>("head_soft_controller/command", 1);
       timescale_pub_= nh->advertise<std_msgs::Float64>("head_soft_controller/timescale", 1);
       state_sub_= nh->subscribe("head_soft_controller/state", 1, &ControllerAmbassador::saveTimeCB, this);
       debut_ = 1;
       fin_ = 2;
       break;
-    case PR2SM_RARM:
+    case RARM:
       command_pub_= nh->advertise<pr2_soft_controller::SM_TRAJ_STR_ROS>("r_arm_soft_controller/command", 1);
       timescale_pub_= nh->advertise<std_msgs::Float64>("r_arm_soft_controller/timescale", 1);
       state_sub_= nh->subscribe("r_arm_soft_controller/state", 1, &ControllerAmbassador::saveTimeCB, this);
       debut_ = 4;
       fin_ = 10;
       break;
-    case PR2SM_LARM:
+    case LARM:
       command_pub_= nh->advertise<pr2_soft_controller::SM_TRAJ_STR_ROS>("l_arm_soft_controller/command", 1);
       timescale_pub_= nh->advertise<std_msgs::Float64>("l_arm_soft_controller/timescale", 1);
       state_sub_= nh->subscribe("l_arm_soft_controller/state", 1, &ControllerAmbassador::saveTimeCB, this);
       debut_ = 13;
       fin_ = 19;
       break;
-    case PR2SM_PR2SYN:
+    case PR2SYN:
       command_pub_= nh->advertise<pr2_soft_controller::SM_TRAJ_STR_ROS>("pr2_soft_controller/command", 1);
       timescale_pub_= nh->advertise<std_msgs::Float64>("pr2_soft_controller/timescale", 1);
       state_sub_= nh->subscribe("pr2_soft_controller/state", 1, &ControllerAmbassador::saveTimeCB, this);
@@ -88,12 +88,7 @@ bool ControllerAmbassador::gotoQ(PR2SM_QSTR *qGoto, int *report)
 bool ControllerAmbassador::monitorTraj()
 {
   //Publish timescale in case it changed
-  std_msgs::Float64 timescale;
-  timescale.data= SDI_F->timeScale;
-  timescale_pub_.publish(timescale);
-
-  //printf("Time from start: %f\n", time_from_start_);
-  //printf("Motion duration: %f\n", motionDuration_);
+  publishTimeScale();
 
   ros::spinOnce();
   if( fabs(time_from_start_ - motionDuration_) < 0.000001){
@@ -102,6 +97,13 @@ bool ControllerAmbassador::monitorTraj()
   }
   else
     return false;
+}
+
+void ControllerAmbassador::publishTimeScale()
+{
+  std_msgs::Float64 timescale;
+  timescale.data= SDI_F->timeScale;
+  timescale_pub_.publish(timescale);
 }
 
 void ControllerAmbassador::setRatios(double accVel, double jerkAcc)
@@ -224,14 +226,14 @@ void ControllerAmbassador::saveTimeCB(const pr2_controllers_msgs::JointTrajector
 void ControllerAmbassador::savePoseCB(const sensor_msgs::JointStateConstPtr& msg)
 {
   switch (robotPart_){
-    case PR2SM_TORSO:
+    case TORSO:
       vect_current_pose_[0]=  msg->position[12];  // torso
       break;
-    case PR2SM_HEAD:
+    case HEAD:
       vect_current_pose_[0]=  msg->position[13];  // head pan
       vect_current_pose_[1]=  msg->position[14];  // head tilt
       break;
-    case PR2SM_RARM:
+    case RARM:
       vect_current_pose_[0]=  msg->position[17];  // r shoulder pan
       vect_current_pose_[1]=  msg->position[18];  // r shoulder lift
       vect_current_pose_[2]=  msg->position[16];  // r upper arm roll
@@ -240,7 +242,7 @@ void ControllerAmbassador::savePoseCB(const sensor_msgs::JointStateConstPtr& msg
       vect_current_pose_[5]=  msg->position[21];  // r wrist flex
       vect_current_pose_[6]=  msg->position[22];  // r wrist roll
       break;
-    case PR2SM_LARM:
+    case LARM:
       vect_current_pose_[0]=  msg->position[29];  // l shoulder pan
       vect_current_pose_[1]=  msg->position[30];  // l shoulder lift
       vect_current_pose_[2]=  msg->position[28];  // l upper arm roll
@@ -249,7 +251,7 @@ void ControllerAmbassador::savePoseCB(const sensor_msgs::JointStateConstPtr& msg
       vect_current_pose_[5]=  msg->position[33];  // l wrist flex
       vect_current_pose_[6]=  msg->position[34];  // l wrist roll
       break;
-    case PR2SM_PR2SYN:
+    case PR2SYN:
       vect_current_pose_[0]=  msg->position[12];  // torso
       vect_current_pose_[1]=  msg->position[13];  // head pan
       vect_current_pose_[2]=  msg->position[14];  // head tilt
@@ -281,14 +283,14 @@ void ControllerAmbassador::savePoseCB(const sensor_msgs::JointStateConstPtr& msg
 void ControllerAmbassador::setMaxVelVect()
 {
   switch (robotPart_){
-    case PR2SM_TORSO:
+    case TORSO:
       vect_V_max_[0]=     SDI_F->speedLimit * TORSO_MAXVEL            ;
       break;
-    case PR2SM_HEAD:
+    case HEAD:
       vect_V_max_[0]=     SDI_F->speedLimit * HEAD_PAN_MAXVEL         ;
       vect_V_max_[1]=     SDI_F->speedLimit * HEAD_TILT_MAXVEL        ;
       break;
-    case PR2SM_RARM:
+    case RARM:
       vect_V_max_[0]=     SDI_F->speedLimit * R_SHOULDER_PAN_MAXVEL   ;
       vect_V_max_[1]=     SDI_F->speedLimit * R_SHOULDER_LIFT_MAXVEL  ;
       vect_V_max_[2]=     SDI_F->speedLimit * R_UPPER_ARM_ROLL_MAXVEL ;
@@ -297,7 +299,7 @@ void ControllerAmbassador::setMaxVelVect()
       vect_V_max_[5]=     SDI_F->speedLimit * R_WRIST_FLEX_MAXVEL     ;
       vect_V_max_[6]=     SDI_F->speedLimit * R_WRIT_ROLL_MAXVEL      ;
       break;
-    case PR2SM_LARM:
+    case LARM:
       vect_V_max_[0]=     SDI_F->speedLimit * L_SHOULDER_PAN_MAXVEL   ;
       vect_V_max_[1]=     SDI_F->speedLimit * L_SHOULDER_LIFT_MAXVEL  ;
       vect_V_max_[2]=     SDI_F->speedLimit * L_UPPER_ARM_ROLL_MAXVEL ;
@@ -306,7 +308,7 @@ void ControllerAmbassador::setMaxVelVect()
       vect_V_max_[5]=     SDI_F->speedLimit * L_WRIST_FLEX_MAXVEL     ;
       vect_V_max_[6]=     SDI_F->speedLimit * L_WRIST_ROLL_MAXVEL     ;
       break;
-    case PR2SM_PR2SYN:
+    case PR2SYN:
       vect_V_max_[0]=  SDI_F->speedLimit * TORSO_MAXVEL            ;
       vect_V_max_[1]=  SDI_F->speedLimit * HEAD_PAN_MAXVEL         ;
       vect_V_max_[2]=  SDI_F->speedLimit * HEAD_TILT_MAXVEL        ;

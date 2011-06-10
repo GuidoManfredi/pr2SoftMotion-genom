@@ -34,19 +34,19 @@
 #include "pr2SoftMotionConst.h"
 
 typedef enum PR2SM_ROBOT_PART_ENUM {
-  PR2SM_PR2,
-  PR2SM_PR2SYN,
-  PR2SM_TORSO,
-  PR2SM_HEAD,
-  PR2SM_RARM,
-  PR2SM_LARM
+  PR2,
+  PR2SYN,
+  TORSO,
+  HEAD,
+  RARM,
+  LARM
 } PR2SM_ROBOT_PART_ENUM;
 
 typedef enum PR2SM_gripperGrabRelease {
-  PR2SM_GRAB,
-  PR2SM_RELEASE,
-  PR2SM_OPEN,
-  PR2SM_CLOSE
+  GRAB,
+  RELEASE,
+  OPEN,
+  CLOSE
 } PR2SM_gripperGrabRelease;
 
 typedef enum PR2SM_TRACK_MODE_ENUM {

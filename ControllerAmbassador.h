@@ -27,6 +27,7 @@ public:
   bool trackQ(SM_TRAJ_STR *sm_traj_str, int *report);
   bool gotoQ(PR2SM_QSTR *qGoto, int *report);
   bool monitorTraj();
+  void publishTimeScale();
   void setRatios(double accVel, double jerkAcc);
 
 protected:
