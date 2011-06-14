@@ -63,7 +63,9 @@ ControllerAmbassador::ControllerAmbassador(PR2SM_ROBOT_PART_ENUM robotPart, ros:
 bool ControllerAmbassador::trackQ(SM_TRAJ_STR *sm_traj_str, int *report)
 {
   //printf("TrackQ: Loading traj...\n");
-  loadTraj(sm_traj_str, debut_, fin_);
+  if(loadTraj(sm_traj_str, debut_, fin_) != true) {
+    return false;
+  }
   //printf("TrackQ: Sending traj...\n");
   sendTraj();
   //printf("TrackQ: Waiting for completion...\n");
@@ -153,28 +155,90 @@ void ControllerAmbassador::computeGoto(PR2SM_QSTR *qGoto, int *report)
   traj.convertToSM_TRAJ_STR(smTraj_);
 }
 
-void ControllerAmbassador::loadTraj(SM_TRAJ_STR *smTraj, int debut, int fin)
+bool ControllerAmbassador::loadTraj(SM_TRAJ_STR *smTraj, int debut, int fin)
 {
   if(!smTraj){
     printf("Error: No trajectory. Aborting.\n");
-    return;
+    return false;
   }
 
-/*
+  ros::spinOnce();
+
   //fix initial conditions for circular dofs
-  for(int i=0; i<smTraj->nbAxis; ++i){
-    if(i==8 || i==10 || i==17 || i==19 )
-      printf("i %d old %f new %f\n", i, smTraj->traj[i].seg[0].ic_x, vect_current_pose_[i] );
-      smTraj->traj[i].seg[0].ic_x =  vect_current_pose_[i];
-      smTraj->qStart[i] =  vect_current_pose_[i];
+  switch (robotPart_){
+  case TORSO:
+    break;
+  case HEAD:
+    printf("ERROR pr2SoftMotion loadTraj. HEAD\n");
+    break;
+  case RARM:
+    for(int i=0; i<smTraj->nbAxis; ++i){
+      if(i==8 || i==10 ) {
+	//TODO test if circular dof are equal modulo 2*pi 
+	printf("i %d old %f new %f\n", i, smTraj->traj[i].seg[0].ic_x, vect_current_pose_[i-debut] );
+	smTraj->traj[i].seg[0].ic_x =  vect_current_pose_[i-debut];
+	smTraj->qStart[i] =  vect_current_pose_[i-debut];
+      } 
+    }
+    break;
+  case LARM:
+    for(int i=0; i<smTraj->nbAxis; ++i){
+      if(i==17 || i==19 ) { 
+	//TODO test if circular dof are equal modulo 2*pi 
+	printf("i %d old %f new %f\n", i, smTraj->traj[i].seg[0].ic_x, vect_current_pose_[i-debut] );
+	smTraj->traj[i].seg[0].ic_x =  vect_current_pose_[i-debut];
+	smTraj->qStart[i] =  vect_current_pose_[i-debut];
+      } 
+    }
+    break;
+  case PR2SYN:
+    printf("ERROR pr2SoftMotion loadTraj. PR2SYN\n");
+    break;
+  default:
+    printf("ERROR: ControllerAmbassador::loadTraj Unknown robot part.\n");
   }
-*/
+
 
   // compute duration. This is ugly but we have to make sure the duration
   //has been computed.
   SM_TRAJ tmpMotion;
   tmpMotion.importFromSM_TRAJ_STR( smTraj );
+  /* also needed for circular dof ... */
   tmpMotion.computeTimeOnTraj();
+
+  /* Check the initial configuration of the trajectory */
+  setMaxVelVect();
+  std::vector<SM_COND> cond;
+  tmpMotion.getMotionCond(0.0 , cond);
+  for(int i=0; i< nbJoints_; i++) {
+    if(fabs(vect_current_pose_[i] - cond[i+debut].x) >  vect_V_max_[i]*0.1) {
+      switch (robotPart_){
+      case TORSO:
+	printf("ERROR pr2SoftMotion loadTraj. TORSO\n");
+	break;
+      case HEAD:
+	printf("ERROR pr2SoftMotion loadTraj. HEAD\n");
+	break;
+      case RARM:
+	printf("ERROR pr2SoftMotion loadTraj. RARM\n");
+	break;
+      case LARM:
+	printf("ERROR pr2SoftMotion loadTraj. LARM\n");
+	break;
+      case PR2SYN:
+	printf("ERROR pr2SoftMotion loadTraj. PR2SYN\n");
+	break;
+      default:
+	printf("ERROR: ControllerAmbassador::loadTraj Unknown robot part.\n");
+      }
+
+      
+      printf("ERROR pr2SoftMotion loadTraj. Error Init Position at least for joint %d val=%f current %f initTraj %f threshold %f \n", i, fabs(vect_current_pose_[i] - cond[i+debut].x), vect_current_pose_[i], cond[i+debut].x, vect_V_max_[i]*0.1);
+      printf("ERROR pr2SoftMotion loadTraj. Aborting.\n");
+      return false;
+    }
+  }
+  
   //save the trajectory duration
   motionDuration_ = tmpMotion.getDuration();
   tmpMotion.convertToSM_TRAJ_STR( smTraj );
@@ -209,6 +273,7 @@ void ControllerAmbassador::loadTraj(SM_TRAJ_STR *smTraj, int debut, int fin)
         }
     }
   }
+  return true;
 }
 
 void ControllerAmbassador::sendTraj()

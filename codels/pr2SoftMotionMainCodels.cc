@@ -556,9 +556,11 @@ pr2SoftMotionSetHumanDistancePosterMain(GEN_STRING128 *humanDistPosterName, int 
     *report =  S_pr2SoftMotion_CANNOT_READ_POSTER;
   }
   else {
-    *report = OK;
-  }
 
+    *report = OK;
+    printf("pr2SoftMotionSetHumanDistancePosterMain poster connected \n");
+  }
+  printf("pr2SoftMotionSetHumanDistancePosterMain OK\n");
   return ETHER;
 }
 

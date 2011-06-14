@@ -32,7 +32,7 @@ public:
 
 protected:
   void computeGoto(PR2SM_QSTR *qGoto, int *report);
-  void loadTraj(SM_TRAJ_STR* smTraj, int debut, int fin);
+  bool loadTraj(SM_TRAJ_STR* smTraj, int debut, int fin);
   void sendTraj();
   void saveTimeCB(const pr2_controllers_msgs::JointTrajectoryControllerStateConstPtr& msg);
   void savePoseCB(const sensor_msgs::JointStateConstPtr& msg);
