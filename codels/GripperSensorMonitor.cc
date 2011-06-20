@@ -156,7 +156,8 @@ bool GripperSensorMonitor::hold(double holdForce){
     
   ROS_INFO("Sending hold goal");
   force_client_->sendGoal(squeeze);
-  force_client_->waitForResult();
+  //wait only for 3 seconds in order not to block.
+  force_client_->waitForResult(ros::Duration(3.0));
   if(force_client_->getState() == actionlib::SimpleClientGoalState::SUCCEEDED){
     ROS_INFO("Stable force was achieved");
     return true;
