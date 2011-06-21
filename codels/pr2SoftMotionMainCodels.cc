@@ -279,7 +279,10 @@ pr2SoftMotionTrackQMain(PR2SM_TRACK_STR *trackStr, int *report)
       break;
     case PR2: 
       // we choose the slower joint, so the torso
-      finished= torsoAmbassador->monitorTraj();
+      finished= headAmbassador->monitorTraj() && 
+                torsoAmbassador->monitorTraj() &&
+                rArmAmbassador->monitorTraj() &&
+                lArmAmbassador->monitorTraj();
       break;
     default:
       printf("Error: unknown robot part. Motion cancelled.\n");
