@@ -177,6 +177,7 @@ pr2SoftMotionTrackQStart(PR2SM_TRACK_STR *trackStr, int *report)
 {
   static int previousState = 0, motionOk = 0;
   SM_TRAJ_STR smTraj;
+  PR2SM_QSTR qInit;
 
   /********************** POSTER READING ***********************/
   switch(trackStr->trackMode) {
@@ -185,8 +186,7 @@ pr2SoftMotionTrackQStart(PR2SM_TRACK_STR *trackStr, int *report)
       currentMotion.load(trackStr->posterName.name, NULL);      
       currentMotion.computeTimeOnTraj();
       currentMotion.convertToSM_TRAJ_STR(&smTraj);
-      break;
-
+  
     case PR2SM_TRACK_POSTER:
       if(pr2SoftMotionSM_TRAJ_STRPosterRead (pr2Trackposter, &smTraj) != OK) {
         *report = S_pr2SoftMotion_POSTER_READ_ERROR;
@@ -240,7 +240,7 @@ pr2SoftMotionTrackQStart(PR2SM_TRACK_STR *trackStr, int *report)
         torsoAmbassador->trackQ(&smTraj, report);
         headAmbassador->trackQ(&smTraj, report);
         rArmAmbassador->trackQ(&smTraj, report);
-        lArmAmbassador->trackQ(&smTraj, report);
+        lArmAmbassador->trackQ(&smTraj, report); 
         break;
       default:
         printf("Error: unknown robot part. Motion cancelled.\n");
