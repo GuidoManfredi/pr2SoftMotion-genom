@@ -161,7 +161,7 @@ request TrackQ {
     type:		    exec;
     exec_task:		    Main; 
     input:		    posterName::trackStr; 
-    input_info:		    "mhpArmTraj"::"Poster or File name" , PR2SM_TRACK_POSTER::"Mode", PR2SM_PR2::"Robot part";			    
+    input_info:		    "mhpArmTraj"::"Poster or File name" , PR2SM_TRACK_POSTER::"Mode", PR2::"Robot part";			    
     posters_input:	    SM_TRAJ_STR;
     codel_start:	    pr2SoftMotionTrackQStart;
     codel_main:		    pr2SoftMotionTrackQMain;
@@ -187,7 +187,7 @@ request MoveHead {
     type:		    exec;
     exec_task:		    Main; 
     input:		    xyzHead::xyzHead; 
-    input_info:		    0::"x", 0::"y", 0::"z"; 
+    input_info:		    0::"x", 0::"y", 0::"z", "/map"::"frame"; 
     codel_start:	    pr2SoftMotionMoveHeadStart;
     codel_main:		    pr2SoftMotionMoveHeadMain;
     codel_end:		    pr2SoftMotionMoveHeadEnd;
