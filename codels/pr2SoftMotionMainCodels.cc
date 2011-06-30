@@ -92,6 +92,19 @@ pr2SoftMotionMainPerm(int *report)
   if(SDI_F->isInit == GEN_FALSE) {
     return ETHER;
   }
+  if(posterHumDistId && SDI_F->humanDistMode == GEN_TRUE) {
+    if(pr2SoftMotionGENHUM_HUMAN_DISTANCEPosterRead(posterHumDistId,
+						    &SDI_F->humanDist) == ERROR) {
+      *report =  S_pr2SoftMotion_CANNOT_READ_POSTER;
+    }
+    SDI_F->timeScale = SDI_F->humanDist.costDistRobToHum;
+  }
+
+  torsoAmbassador->publishTimeScale();
+  headAmbassador->publishTimeScale();
+  rArmAmbassador->publishTimeScale();
+  lArmAmbassador->publishTimeScale();
+
   return OK;
 }
 /*------------------------------------------------------------------------
@@ -120,7 +133,8 @@ pr2SoftMotionInitMain(int *report)
   SDI_F->speedLimit = 1;
   SDI_F->accelerationVelRatio = 1; // Unsused
   SDI_F->jerkAccelerationRatio = 3;
- 
+  SDI_F->humanDistMode = GEN_FALSE;
+
   //Ros init
   printf("Init ros node...");
   ros::init(argc, argv, "pr2SoftMotionNode");
@@ -390,7 +404,7 @@ pr2SoftMotionGotoQMain(PR2SM_QSTR *qGoto, int *report)
       printf("Error: unknown robot part. Motion cancelled.\n");
   } 
 
-  return ETHER;
+  return END;
 }
 
 /* pr2SoftMotionGotoQEnd  -  codel END of GotoQ
@@ -398,8 +412,42 @@ pr2SoftMotionGotoQMain(PR2SM_QSTR *qGoto, int *report)
 ACTIVITY_EVENT
 pr2SoftMotionGotoQEnd(PR2SM_QSTR *qGoto, int *report)
 {
-  /* ... add your code here ... */
-  return ETHER;
+    bool finished= false;
+
+  switch(qGoto->robotPart){
+    case HEAD:
+      finished= headAmbassador->monitorTraj();
+      break;
+    case TORSO:
+      finished= torsoAmbassador->monitorTraj();
+      break;
+    case RARM:
+      finished= rArmAmbassador->monitorTraj();
+      break;
+    case LARM:
+      finished= lArmAmbassador->monitorTraj();
+      break;
+    case PR2SYN:
+      finished= pr2SynAmbassador->monitorTraj();
+      break;
+    case PR2: 
+      // we choose the slower joint, so the torso
+      finished= headAmbassador->monitorTraj() && 
+                torsoAmbassador->monitorTraj() &&
+                rArmAmbassador->monitorTraj() &&
+                lArmAmbassador->monitorTraj();
+      break;
+    default:
+      printf("Error: unknown robot part. Motion cancelled.\n");
+      return ETHER;
+  }
+
+  //end loop conditions
+  if(finished)
+    return ETHER;
+  else
+    return END;
+
 }
 
 /*------------------------------------------------------------------------
@@ -549,10 +597,13 @@ pr2SoftMotionGripperGrabReleaseEnd(PR2SM_gripperGrabRelease *mode, int *report)
 ACTIVITY_EVENT
 pr2SoftMotionSetHumanDistancePosterMain(GEN_STRING128 *humanDistPosterName, int *report)
 {
+  posterHumDistId = NULL;
+   printf("toto\n" );
   /* Find the external poster and try it by reading once */
  if(pr2SoftMotionGENHUM_HUMAN_DISTANCEPosterFind(humanDistPosterName->name,
                                       &posterHumDistId) == ERROR) {
     *report =  S_pr2SoftMotion_CANNOT_FIND_POSTER;
+    printf("toto\n" );
   }
   else if(pr2SoftMotionGENHUM_HUMAN_DISTANCEPosterRead(posterHumDistId,
                                            &SDI_F->humanDist) == ERROR) {
