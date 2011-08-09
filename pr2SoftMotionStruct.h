@@ -46,7 +46,8 @@ typedef enum PR2SM_gripperGrabRelease {
   GRAB,
   RELEASE,
   OPEN,
-  CLOSE
+  CLOSE,
+  CANCEL
 } PR2SM_gripperGrabRelease;
 
 typedef enum PR2SM_TRACK_MODE_ENUM {
@@ -101,4 +102,8 @@ typedef struct PR2SM_gripperSensorTresh {
   double releaseSlip;
   double holdForce;
 } PR2SM_gripperSensorTresh;
+
+typedef struct PR2SM_timeScale {
+  double timescale[5];
+} PR2SM_timeScale;
 #endif

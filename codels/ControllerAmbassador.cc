@@ -104,7 +104,9 @@ bool ControllerAmbassador::monitorTraj()
 void ControllerAmbassador::publishTimeScale()
 {
   std_msgs::Float64 timescale;
-  timescale.data= SDI_F->timeScale;
+  //ROS_INFO("using robotPart:%d", robotPart_);
+  //minus 1 because ENUMs start at 1
+  timescale.data= SDI_F->timeScale.timescale[robotPart_-1];
   timescale_pub_.publish(timescale);
 }
 

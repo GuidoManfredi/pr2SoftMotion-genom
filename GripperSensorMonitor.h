@@ -29,16 +29,16 @@ class GripperSensorMonitor{
     GripperSensorMonitor(ros::NodeHandle* nh);
     ~GripperSensorMonitor();
 
-    bool grab(double accT, double slipT);
-    bool release(double accT, double slipT);
+    void stopAll();
     bool open();
-    bool close(double holdForce);
+    void findTwoContacts();
+    bool findTwoContactsWait();
+    void slipServo();
+    void detect(double accT, double slipT);
+    bool detectWait();
+    bool hold(double holdForce);
 
   private:
-    bool findTwoContacts();
-    void slipServo();
-    bool detect(double accT, double slipT);
-    bool hold(double holdForce);
     void contactStateCB(const pr2_gripper_sensor_msgs::PR2GripperFindContactDataConstPtr& msg);
     void positionCB(const pr2_controllers_msgs::JointControllerStateConstPtr& msg);
 
@@ -50,6 +50,7 @@ class GripperSensorMonitor{
     ros::Subscriber gripper_state_sub_;
     ros::Subscriber gripper_position_sub_;
     
+    bool detectActive_;
     bool padContact_;
     bool handClosed_;
 };

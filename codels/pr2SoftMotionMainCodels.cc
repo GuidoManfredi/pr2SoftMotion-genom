@@ -97,7 +97,8 @@ pr2SoftMotionMainPerm(int *report)
 						    &SDI_F->humanDist) == ERROR) {
       *report =  S_pr2SoftMotion_CANNOT_READ_POSTER;
     }
-    SDI_F->timeScale = SDI_F->humanDist.costDistRobToHum;
+    for(int i=0; i<5; ++i)
+      SDI_F->timeScale.timescale[i] = SDI_F->humanDist.costDistRobToHum;
   }
 
   torsoAmbassador->publishTimeScale();
@@ -128,7 +129,8 @@ pr2SoftMotionInitMain(int *report)
                     NULL};
   int argc = 2;
 
-  SDI_F->timeScale = 1.0;
+  for(int i=0; i<5; ++i)
+    SDI_F->timeScale.timescale[i] = 1.0;
   SDI_F->motionIsAllowed = GEN_TRUE;
   SDI_F->speedLimit = 1;
   SDI_F->accelerationVelRatio = 1; // Unsused
@@ -292,7 +294,7 @@ pr2SoftMotionTrackQMain(PR2SM_TRACK_STR *trackStr, int *report)
       finished= pr2SynAmbassador->monitorTraj();
       break;
     case PR2: 
-      // we choose the slower joint, so the torso
+      // we wait for all parts to finish
       finished= headAmbassador->monitorTraj() && 
                 torsoAmbassador->monitorTraj() &&
                 rArmAmbassador->monitorTraj() &&
@@ -537,6 +539,31 @@ pr2SoftMotionMoveHeadEnd(PR2SM_xyzHead *xyzHead, int *report)
 ACTIVITY_EVENT
 pr2SoftMotionGripperGrabReleaseStart(PR2SM_gripperGrabRelease *mode, int *report)
 {
+  switch(*mode)
+  {
+    case RELEASE:
+      printf("Ready to release.\n");
+      r_gripperSensorMonitor->detect(SDI_F->sensorTresholds.releaseAcc, SDI_F->sensorTresholds.releaseSlip);
+      break;
+    case GRAB:
+      printf("Ready to grab.\n");
+      r_gripperSensorMonitor->detect(SDI_F->sensorTresholds.grabAcc, SDI_F->sensorTresholds.grabSlip);
+      break;
+    case OPEN:
+      printf("Openning gripper.\n");
+      break;
+    case CLOSE:
+      r_gripperSensorMonitor->findTwoContacts();
+      printf("Closing gripper.\n");
+      break;
+    case CANCEL:
+      printf("Canceling all gripper actions.\n");
+      r_gripperSensorMonitor->stopAll();
+      break;
+    default:
+      printf("Error: Unrecognized gripper mode\n");
+  }
+
   return EXEC;
 }
 
@@ -546,31 +573,38 @@ pr2SoftMotionGripperGrabReleaseStart(PR2SM_gripperGrabRelease *mode, int *report
 ACTIVITY_EVENT
 pr2SoftMotionGripperGrabReleaseMain(PR2SM_gripperGrabRelease *mode, int *report)
 {
-  //printf("%f %f\n", SDI_F->sensorTresholds.grabAcc, SDI_F->sensorTresholds.grabSlip);
-
   switch(*mode)
   {
     case RELEASE:
-      printf("Ready to release.\n");
-      r_gripperSensorMonitor->release(SDI_F->sensorTresholds.releaseAcc, SDI_F->sensorTresholds.releaseSlip);
+      if(r_gripperSensorMonitor->detectWait()){
+        *mode= OPEN;
+      }
       break;
     case GRAB:
-      printf("Ready to grab.\n");
-      r_gripperSensorMonitor->grab(SDI_F->sensorTresholds.grabAcc, SDI_F->sensorTresholds.grabSlip);
+      if(r_gripperSensorMonitor->detectWait()){
+        r_gripperSensorMonitor->findTwoContacts();
+        *mode= CLOSE;
+      }
       break;
     case OPEN:
-      printf("Openning gripper.\n");
       r_gripperSensorMonitor->open();
+      return ETHER;
       break;
     case CLOSE:
-      printf("Closing gripper.\n");
-      r_gripperSensorMonitor->close(SDI_F->sensorTresholds.holdForce);
+      if(r_gripperSensorMonitor->findTwoContactsWait()){
+        r_gripperSensorMonitor->hold(SDI_F->sensorTresholds.holdForce);
+        return ETHER;
+      }
+      break;
+    case CANCEL:
+      return ETHER;
       break;
     default:
       printf("Error: Unrecognized gripper mode\n");
+      return ETHER;
   }
 
-return ETHER;
+return EXEC;
 }
 
 /* pr2SoftMotionGripperGrabReleaseEnd  -  codel START of GrabRelease
@@ -598,12 +632,10 @@ ACTIVITY_EVENT
 pr2SoftMotionSetHumanDistancePosterMain(GEN_STRING128 *humanDistPosterName, int *report)
 {
   posterHumDistId = NULL;
-   printf("toto\n" );
   /* Find the external poster and try it by reading once */
  if(pr2SoftMotionGENHUM_HUMAN_DISTANCEPosterFind(humanDistPosterName->name,
                                       &posterHumDistId) == ERROR) {
     *report =  S_pr2SoftMotion_CANNOT_FIND_POSTER;
-    printf("toto\n" );
   }
   else if(pr2SoftMotionGENHUM_HUMAN_DISTANCEPosterRead(posterHumDistId,
                                            &SDI_F->humanDist) == ERROR) {

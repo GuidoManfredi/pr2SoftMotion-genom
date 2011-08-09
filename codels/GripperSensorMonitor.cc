@@ -35,6 +35,7 @@ GripperSensorMonitor::GripperSensorMonitor(ros::NodeHandle* nh){
   gripper_position_sub_= nh->subscribe("r_gripper_controller/state", 1, &GripperSensorMonitor::positionCB, this);
 
   //default values, they doesn't really  mean something.
+  detectActive_= false;
   padContact_ = false;
   handClosed_ = false;
 }
@@ -47,23 +48,10 @@ GripperSensorMonitor::~GripperSensorMonitor(){
     delete force_client_;
 }
 
-//Open the gripper, find contact on both fingers, and go into slip-servo control mode
-bool GripperSensorMonitor::grab(double grabAcc, double grabSlip){
-  if( detect(grabAcc, grabSlip) )
-    if( findTwoContacts() ){
-      slipServo();
-      return true;
-    }
-  
-  return false;
-}
+void GripperSensorMonitor::stopAll(){
 
-// Look for side impact, finerpad slip, or contact acceleration signals and release the object once these occur
-bool GripperSensorMonitor::release(double releaseAcc, double releaseSlip){
-  if (detect(releaseAcc, releaseSlip) )
-    return open();
-
-  return false;
+  if(detectActive_)
+    event_detector_client_->cancelGoal();
 }
 
 //Open the gripper
@@ -73,33 +61,20 @@ bool GripperSensorMonitor::open(){
     open.command.max_effort = -1.0;  // unlimited motor effort
 
     ROS_INFO("Sending open goal");
-    gripper_client_->sendGoal(open);
-    gripper_client_->waitForResult();
-    if(gripper_client_->getState() == actionlib::SimpleClientGoalState::SUCCEEDED){
-      ROS_INFO("The gripper opened!");
-      return true;
-    }
-    else{
-      ROS_INFO("The gripper failed to open.");
-      return false;
-    }
-}
-
-bool GripperSensorMonitor::close(double holdForce){
-  if( findTwoContacts() ) {
-    return hold(holdForce);
-  }
+    gripper_client_->sendGoal(open);    
 }
 
   //Find two contacts on the robot gripper
-bool GripperSensorMonitor::findTwoContacts(){
+void GripperSensorMonitor::findTwoContacts(){
     pr2_gripper_sensor_msgs::PR2GripperFindContactGoal findTwo;
     findTwo.command.contact_conditions = findTwo.command.BOTH;  // close until both fingers contact
     findTwo.command.zero_fingertip_sensors = true;   // zero fingertip sensor values before moving
  
     ROS_INFO("Sending find 2 contact goal");
     contact_client_->sendGoal(findTwo);
-    contact_client_->waitForResult(ros::Duration(5.0));
+}
+
+bool GripperSensorMonitor::findTwoContactsWait(){
     if(contact_client_->getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
     {
       ROS_INFO("Contact found. Left: %d, Right: %d", contact_client_->getResult()->data.left_fingertip_pad_contact, 
@@ -109,25 +84,11 @@ bool GripperSensorMonitor::findTwoContacts(){
       return true;
     }
     else{
-      ROS_INFO("The gripper did not find a contact.");\
       return false;
     }
 }
 
-  //Slip servo
-void GripperSensorMonitor::slipServo(){
-    pr2_gripper_sensor_msgs::PR2GripperSlipServoGoal slip_goal;
-
-    ROS_INFO("Slip Servoing");
-    slip_client_->sendGoal(slip_goal);
-    if(slip_client_->getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
-      ROS_INFO("You Should Never See This Message!"); 
-    else
-      ROS_INFO("SlipServo Action returned without success.");
-    
-} 
-
-bool GripperSensorMonitor::detect(double accT, double slipT){
+void GripperSensorMonitor::detect(double accT, double slipT){
     //printf("%f %f\n", accT, slipT);
 
     pr2_gripper_sensor_msgs::PR2GripperEventDetectorGoal goal;
@@ -137,15 +98,18 @@ bool GripperSensorMonitor::detect(double accT, double slipT){
 
     ROS_INFO("Waiting for contact with accT=%f and slipT=%f...", accT, slipT);
     event_detector_client_->sendGoal(goal);
-    event_detector_client_->waitForResult();
+    detectActive_ = true;
+}
+
+bool GripperSensorMonitor::detectWait(){
     if(event_detector_client_->getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
     {
       ROS_INFO("Contact detected");
       ROS_INFO("cond met: %d, acc_met: %d, slip_met: %d", event_detector_client_->getResult()->data.trigger_conditions_met, event_detector_client_->getResult()->data.acceleration_event, event_detector_client_->getResult()->data.slip_event);
+      detectActive_= false;
       return true;
     }
     else{
-      ROS_INFO("Contact detection failure");
       return false;
     }
 }
