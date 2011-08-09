@@ -202,6 +202,7 @@ pr2SoftMotionTrackQStart(PR2SM_TRACK_STR *trackStr, int *report)
       currentMotion.load(trackStr->posterName.name, NULL);      
       currentMotion.computeTimeOnTraj();
       currentMotion.convertToSM_TRAJ_STR(&smTraj);
+      break;
   
     case PR2SM_TRACK_POSTER:
       if(pr2SoftMotionSM_TRAJ_STRPosterRead (pr2Trackposter, &smTraj) != OK) {
