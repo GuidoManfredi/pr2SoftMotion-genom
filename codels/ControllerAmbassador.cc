@@ -171,7 +171,6 @@ bool ControllerAmbassador::loadTraj(SM_TRAJ_STR *smTraj, int debut, int fin)
   case TORSO:
     break;
   case HEAD:
-    printf("ERROR pr2SoftMotion loadTraj. HEAD\n");
     break;
   case RARM:
     for(int i=0; i<smTraj->nbAxis; ++i){
