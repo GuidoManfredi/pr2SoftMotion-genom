@@ -76,13 +76,13 @@ bool ControllerAmbassador::trackQ(SM_TRAJ_STR *sm_traj_str, int *report)
 bool ControllerAmbassador::gotoQ(PR2SM_QSTR *qGoto, int *report)
 {
   setMaxVelVect(); 
-  printf("GotoQ: Computing traj\n");
+  //printf("GotoQ: Computing traj\n");
   computeGoto(qGoto, report);
-  printf("GotoQ: Loading traj\n");
+  //printf("GotoQ: Loading traj\n");
   loadTraj(smTraj_, 0, nbJoints_-1);
-  printf("GotoQ: Sending traj.\n");
+  //printf("GotoQ: Sending traj.\n");
   sendTraj();
-  printf("GotoQ: Trajectory sent\n");
+  //printf("GotoQ: Trajectory sent\n");
 
   return true;
 }
@@ -105,7 +105,8 @@ void ControllerAmbassador::publishTimeScale()
 {
   std_msgs::Float64 timescale;
   //ROS_INFO("using robotPart:%d", robotPart_);
-  //minus 1 because ENUMs start at 1
+  //minus 1 because ENUMs the ENUM PR2(position 0) is never
+  // called.
   timescale.data= SDI_F->timeScale.timescale[robotPart_-1];
   timescale_pub_.publish(timescale);
 }
@@ -168,10 +169,6 @@ bool ControllerAmbassador::loadTraj(SM_TRAJ_STR *smTraj, int debut, int fin)
 
   //fix initial conditions for circular dofs
   switch (robotPart_){
-  case TORSO:
-    break;
-  case HEAD:
-    break;
   case RARM:
     for(int i=0; i<smTraj->nbAxis; ++i){
       if(i==8 || i==10 ) {
@@ -191,9 +188,6 @@ bool ControllerAmbassador::loadTraj(SM_TRAJ_STR *smTraj, int debut, int fin)
 	smTraj->qStart[i] =  vect_current_pose_[i-debut];
       } 
     }
-    break;
-  case PR2SYN:
-    printf("ERROR pr2SoftMotion loadTraj. PR2SYN\n");
     break;
   default:
     printf("ERROR: ControllerAmbassador::loadTraj Unknown robot part.\n");

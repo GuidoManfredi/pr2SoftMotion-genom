@@ -200,7 +200,7 @@ pr2SoftMotionTrackQStart(PR2SM_TRACK_STR *trackStr, int *report)
     case PR2SM_TRACK_FILE:
       printf("Reading from file \n");
       currentMotion.load(trackStr->posterName.name, NULL);      
-      currentMotion.computeTimeOnTraj();
+      //currentMotion.computeTimeOnTraj();
       currentMotion.convertToSM_TRAJ_STR(&smTraj);
       break;
   
@@ -224,17 +224,15 @@ pr2SoftMotionTrackQStart(PR2SM_TRACK_STR *trackStr, int *report)
           motionOk = 0;
         }
       }
+      //currentMotion.importFromSM_TRAJ_STR(&smTraj); 
+      //currentMotion.computeTimeOnTraj();
+      //currentMotion.convertToSM_TRAJ_STR(&smTraj);
       break;
     default:
       *report = S_pr2SoftMotion_BAD_MODE;
       return ETHER;
   }
   /**********************************************************/
-
-  // TODO make sure the time computation is done before
-  currentMotion.importFromSM_TRAJ_STR(&smTraj); 
-  currentMotion.computeTimeOnTraj();
-  currentMotion.convertToSM_TRAJ_STR(&smTraj);
 
   if(SDI_F->motionIsAllowed == GEN_TRUE) {
     switch(trackStr->robotPart){
