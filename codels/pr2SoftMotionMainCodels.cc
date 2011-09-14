@@ -257,6 +257,15 @@ pr2SoftMotionTrackQStart(PR2SM_TRACK_STR *trackStr, int *report)
         rArmAmbassador->trackQ(&smTraj, report);
         lArmAmbassador->trackQ(&smTraj, report); 
         break;
+      case ARMS:
+        rArmAmbassador->trackQ(&smTraj, report);
+        lArmAmbassador->trackQ(&smTraj, report);
+        break;
+      case PR2NOHEAD:
+        torsoAmbassador->trackQ(&smTraj, report);
+        rArmAmbassador->trackQ(&smTraj, report);
+        lArmAmbassador->trackQ(&smTraj, report);
+        break;
       default:
         printf("Error: unknown robot part. Motion cancelled.\n");
         return ETHER; 
@@ -299,6 +308,19 @@ pr2SoftMotionTrackQMain(PR2SM_TRACK_STR *trackStr, int *report)
                 rArmAmbassador->monitorTraj() &&
                 lArmAmbassador->monitorTraj();
       break;
+    case ARMS:
+      // we wait for all parts to finish
+      finished= rArmAmbassador->monitorTraj() &&
+                lArmAmbassador->monitorTraj();
+      break;
+    case PR2NOHEAD:
+      // we wait for all parts to finish
+      finished= rArmAmbassador->monitorTraj() &&
+                lArmAmbassador->monitorTraj() &&
+		torsoAmbassador->monitorTraj() ;
+      break;
+
+
     default:
       printf("Error: unknown robot part. Motion cancelled.\n");
       return ETHER;
@@ -367,6 +389,20 @@ pr2SoftMotionGotoQStart(PR2SM_QSTR *qGoto, int *report)
       lArmAmbassador->setRatios(SDI_F->accelerationVelRatio, SDI_F->jerkAccelerationRatio);
       lArmAmbassador->gotoQ(qGoto, report);
       break;
+    case ARMS:
+      rArmAmbassador->setRatios(SDI_F->accelerationVelRatio, SDI_F->jerkAccelerationRatio);
+      rArmAmbassador->gotoQ(qGoto, report);
+      lArmAmbassador->setRatios(SDI_F->accelerationVelRatio, SDI_F->jerkAccelerationRatio);
+      lArmAmbassador->gotoQ(qGoto, report);
+      break;
+    case PR2NOHEAD:
+      torsoAmbassador->setRatios(SDI_F->accelerationVelRatio, SDI_F->jerkAccelerationRatio);
+      torsoAmbassador->gotoQ(qGoto, report);
+      rArmAmbassador->setRatios(SDI_F->accelerationVelRatio, SDI_F->jerkAccelerationRatio);
+      rArmAmbassador->gotoQ(qGoto, report);
+      lArmAmbassador->setRatios(SDI_F->accelerationVelRatio, SDI_F->jerkAccelerationRatio);
+      lArmAmbassador->gotoQ(qGoto, report);
+      break;
     default:
       printf("Error: unknown robot part. Motion cancelled.\n");
   }
@@ -398,6 +434,15 @@ pr2SoftMotionGotoQMain(PR2SM_QSTR *qGoto, int *report)
     case PR2:
       torsoAmbassador->publishTimeScale();
       headAmbassador->publishTimeScale();
+      rArmAmbassador->publishTimeScale();
+      lArmAmbassador->publishTimeScale();
+      break;
+    case ARMS:
+      rArmAmbassador->publishTimeScale();
+      lArmAmbassador->publishTimeScale();
+      break;
+    case PR2NOHEAD:
+      torsoAmbassador->publishTimeScale();
       rArmAmbassador->publishTimeScale();
       lArmAmbassador->publishTimeScale();
       break;
@@ -436,6 +481,16 @@ pr2SoftMotionGotoQEnd(PR2SM_QSTR *qGoto, int *report)
       finished= headAmbassador->monitorTraj() && 
                 torsoAmbassador->monitorTraj() &&
                 rArmAmbassador->monitorTraj() &&
+                lArmAmbassador->monitorTraj();
+      break;
+    case PR2NOHEAD:
+      // we choose the slower joint, so the torso
+      finished=torsoAmbassador->monitorTraj() &&
+                rArmAmbassador->monitorTraj() &&
+                lArmAmbassador->monitorTraj();
+      break;
+    case ARMS:
+      finished= rArmAmbassador->monitorTraj() &&
                 lArmAmbassador->monitorTraj();
       break;
     default:
@@ -520,6 +575,78 @@ pr2SoftMotionMoveHeadEnd(PR2SM_xyzHead *xyzHead, int *report)
   // ... add your code here ...
   return ETHER;
 }
+
+/*------------------------------------------------------------------------
+ * HeadTrack
+ *
+ * Description: 
+ *
+ * Reports:      OK
+ *              S_pr2SoftMotion_NOT_INITIALIZED
+ *              S_pr2SoftMotion_SOFTMOTION_ERROR
+ */
+/* pr2SoftMotionHeadTrackStart  -  codel START of HeadTrack
+   Returns:  START EXEC END ETHER FAIL ZOMBIE */
+ACTIVITY_EVENT
+pr2SoftMotionHeadTrackStart(PR2SM_xyzHead *xyzHead, int *report)
+{
+
+  return EXEC;
+}
+
+/* pr2SoftMotionMoveHeadMain  -  codel START of MoveHead
+   Returns:  START EXEC END ETHER FAIL ZOMBIE */
+ACTIVITY_EVENT
+pr2SoftMotionHeadTrackMain(PR2SM_xyzHead *xyzHead, int *report)
+{
+  tf::TransformListener listener;
+  double pan, tilt;
+  //transforming point into robot frame
+  geometry_msgs::PointStamped goal;
+  geometry_msgs::PointStamped goalRobotFrame;
+  geometry_msgs::PointStamped goalPanFrame;
+
+  goal.header.stamp= ros::Time(0);
+  goal.header.frame_id= xyzHead->frame;
+  goal.point.x= xyzHead->x;
+  goal.point.y= xyzHead->y;
+  goal.point.z= xyzHead->z;
+
+  try
+  {
+    //wait for the listener to get the first message
+    listener.waitForTransform(xyzHead->frame, "base_footprint", ros::Time(0), ros::Duration(1.0));
+    listener.waitForTransform(xyzHead->frame, "head_pan_link", ros::Time(0), ros::Duration(1.0));
+  }
+  catch (tf::TransformException ex)
+  {
+    ROS_ERROR("%s",ex.what());
+    return ETHER;
+  }
+
+  listener.transformPoint("base_footprint", goal, goalRobotFrame);
+  listener.transformPoint("head_pan_link", goal, goalPanFrame);
+
+  pan= atan2(goalRobotFrame.point.y, goalRobotFrame.point.x);
+  tilt= atan2(-goalPanFrame.point.z, sqrt(pow(goalPanFrame.point.x,2)+pow(goalPanFrame.point.y,2)));
+
+  //printf("%f %f\n", pan, tilt);
+  pan_head_pub.publish(pan);
+  tilt_head_pub.publish(tilt);
+
+  return EXEC;
+
+}
+
+/* pr2SoftMotionMoveHeadEnd  -  codel START of MoveHead
+   Returns:  START EXEC END ETHER FAIL ZOMBIE */
+ACTIVITY_EVENT
+pr2SoftMotionHeadTrackEnd(PR2SM_xyzHead *xyzHead, int *report)
+{
+  // ... add your code here ...
+  return ETHER;
+}
+
 
 /*------------------------------------------------------------------------
  * GripperGrabRelease
