@@ -76,6 +76,7 @@
 // Velocities used by the motion planner
 #define  R_SHOULDER_PAN_MAXVEL      1.5
 #define  R_SHOULDER_LIFT_MAXVEL     1.52
+// Novela values #define  R_UPPER_ARM_ROLL_MAXVEL    1.5
 #define  R_UPPER_ARM_ROLL_MAXVEL    0.27
 #define  R_ELBOW_FLEX_MAXVEL        1.5
 #define  R_FOREARM_ROLL_MAXVEL      1.5
@@ -86,6 +87,7 @@
 
 #define  L_SHOULDER_PAN_MAXVEL      1.5
 #define  L_SHOULDER_LIFT_MAXVEL     1.52
+// Novela values #define  L_UPPER_ARM_ROLL_MAXVEL    1.5
 #define  L_UPPER_ARM_ROLL_MAXVEL    0.27
 #define  L_ELBOW_FLEX_MAXVEL        1.5
 #define  L_FOREARM_ROLL_MAXVEL      1.5
