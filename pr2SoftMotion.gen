@@ -140,7 +140,7 @@ request SetTimeScale {
     doc:		    "Set the velocity of the time evolution along the trajectory";
     type:		    control;
     input:		    timeScale::timeScale;
-    input_info:	            "PR2SYN TORSO HEAD RARM LARM"::"timeScale";
+    input_info:	            "PR2SYN TORSO HEAD RARM LARM BASE"::"timeScale";
     codel_control:	    pr2SoftMotionSetTimeScaleCntrl;
     fail_reports:	    WRONG_VALUE;
     interrupt_activity:	    SetTimeScale;
@@ -169,6 +169,22 @@ request TrackQ {
     fail_reports:           NOT_INITIALIZED, BAD_MODE, POSTER_NOT_FOUND, POSTER_READ_ERROR, FILE_NOT_FOUND, ERROR_INIT_POSITION, Q_LIMITED; 
     interrupt_activity:	    TrackQ; 
 };
+
+/*  
+request TrackNav {
+    doc:		    "Move the base along the trajectory written in a file/poster";
+    type:		    exec;
+    exec_task:		    Main; 
+    input:		    posterName::trackStr; 
+    input_info:		    "mhpArmTraj"::"Poster or File name" , PR2SM_TRACK_POSTER::"Mode";			    
+    posters_input:	    SM_TRAJ_STR;
+    codel_start:	    pr2SoftMotionTrackNavStart;
+    codel_main:		    pr2SoftMotionTrackNavMain;
+    codel_end:		    pr2SoftMotionTrackNavEnd;
+    fail_reports:           NOT_INITIALIZED, BAD_MODE, POSTER_NOT_FOUND, POSTER_READ_ERROR, FILE_NOT_FOUND, ERROR_INIT_POSITION, Q_LIMITED; 
+    interrupt_activity:	    TrackNav; 
+};
+*/
 
 request GotoQ {
     doc:		    "Go from the current position to the given position";

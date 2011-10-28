@@ -49,6 +49,7 @@ static POSTER_ID posterHumDistId = NULL; /* the poster with the human distance *
 static SM_TRAJ currentMotion; /* the softMotion trajectory */
 
 static ros::NodeHandle* nh;
+static ControllerAmbassador* baseAmbassador; 
 static ControllerAmbassador* headAmbassador; 
 static ControllerAmbassador* torsoAmbassador; 
 static ControllerAmbassador* rArmAmbassador; 
@@ -90,17 +91,18 @@ STATUS
 pr2SoftMotionMainPerm(int *report)
 {
   if(SDI_F->isInit == GEN_FALSE) {
-    return ETHER;
+    return OK;
   }
   if(posterHumDistId && SDI_F->humanDistMode == GEN_TRUE) {
     if(pr2SoftMotionGENHUM_HUMAN_DISTANCEPosterRead(posterHumDistId,
 						    &SDI_F->humanDist) == ERROR) {
       *report =  S_pr2SoftMotion_CANNOT_READ_POSTER;
     }
+    // there are 5 groups
     for(int i=0; i<5; ++i)
       SDI_F->timeScale.timescale[i] = SDI_F->humanDist.costDistRobToHum;
   }
-
+  baseAmbassador->publishTimeScale();
   torsoAmbassador->publishTimeScale();
   headAmbassador->publishTimeScale();
   rArmAmbassador->publishTimeScale();
@@ -129,8 +131,9 @@ pr2SoftMotionInitMain(int *report)
                     NULL};
   int argc = 2;
 
-  for(int i=0; i<5; ++i)
+  for(int i=0; i<5; ++i) {
     SDI_F->timeScale.timescale[i] = 1.0;
+  }
   SDI_F->motionIsAllowed = GEN_TRUE;
   SDI_F->speedLimit = 1;
   SDI_F->accelerationVelRatio = 1; // Unsused
@@ -144,6 +147,7 @@ pr2SoftMotionInitMain(int *report)
 
   nh= new ros::NodeHandle(); 
 
+  baseAmbassador = new ControllerAmbassador(BASE, nh);
   headAmbassador = new ControllerAmbassador(HEAD, nh);
   torsoAmbassador = new ControllerAmbassador(TORSO, nh);
   rArmAmbassador = new ControllerAmbassador(RARM, nh);
@@ -163,10 +167,10 @@ pr2SoftMotionInitMain(int *report)
   tilt_head_pub= nh->advertise<std_msgs::Float64>("tilt_head_soft_controller/command", 1);
 
   if(pr2SoftMotionSM_TRAJ_STRPosterFind ("mhpArmTraj", &pr2Trackposter) != OK) {
-      *report = S_pr2SoftMotion_POSTER_NOT_FOUND;
-      printf("Init failed: no poster found.\n");
-      return END;
-    }
+    *report = S_pr2SoftMotion_POSTER_NOT_FOUND;
+    printf("Init failed: no poster found.\n");
+    return END;
+  }
 
   return ETHER;
 }
@@ -224,9 +228,6 @@ pr2SoftMotionTrackQStart(PR2SM_TRACK_STR *trackStr, int *report)
           motionOk = 0;
         }
       }
-      //currentMotion.importFromSM_TRAJ_STR(&smTraj); 
-      //currentMotion.computeTimeOnTraj();
-      //currentMotion.convertToSM_TRAJ_STR(&smTraj);
       break;
     default:
       *report = S_pr2SoftMotion_BAD_MODE;
@@ -236,6 +237,9 @@ pr2SoftMotionTrackQStart(PR2SM_TRACK_STR *trackStr, int *report)
 
   if(SDI_F->motionIsAllowed == GEN_TRUE) {
     switch(trackStr->robotPart){
+      case BASE:
+	baseAmbassador->trackQ(&smTraj, report);
+        break;
       case TORSO:
         torsoAmbassador->trackQ(&smTraj, report);
         break;
@@ -286,6 +290,9 @@ pr2SoftMotionTrackQMain(PR2SM_TRACK_STR *trackStr, int *report)
   bool finished= false;
 
   switch(trackStr->robotPart){
+    case BASE:
+      finished= baseAmbassador->monitorTraj();
+      break;
     case HEAD:
       finished= headAmbassador->monitorTraj();
       break;
@@ -359,6 +366,10 @@ ACTIVITY_EVENT
 pr2SoftMotionGotoQStart(PR2SM_QSTR *qGoto, int *report)
 {
   switch(qGoto->robotPart){
+    case BASE:
+      baseAmbassador->setRatios(SDI_F->accelerationVelRatio, SDI_F->jerkAccelerationRatio);
+      baseAmbassador->gotoQ(qGoto, report);
+      break;
     case TORSO:
       torsoAmbassador->setRatios(SDI_F->accelerationVelRatio, SDI_F->jerkAccelerationRatio);
       torsoAmbassador->gotoQ(qGoto, report);
@@ -416,6 +427,9 @@ pr2SoftMotionGotoQMain(PR2SM_QSTR *qGoto, int *report)
 {
   //Timescale is published again (manually) in case it has changed
   switch(qGoto->robotPart){
+    case BASE:
+      baseAmbassador->publishTimeScale();
+      break;
     case TORSO:
       torsoAmbassador->publishTimeScale();
       break;
@@ -461,6 +475,8 @@ pr2SoftMotionGotoQEnd(PR2SM_QSTR *qGoto, int *report)
     bool finished= false;
 
   switch(qGoto->robotPart){
+    case BASE:
+      finished= baseAmbassador->monitorTraj();
     case HEAD:
       finished= headAmbassador->monitorTraj();
       break;

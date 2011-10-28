@@ -12,54 +12,66 @@
 
 static void doubles2QStr(double* src, PR2SM_QSTR* dst)
 {
-  dst->torso= src[0];
-  dst->head_pan= src[1];
-  dst->head_tilt= src[2];
-  dst->laser_tilt= src[3];
-  dst->r_shoulder_pan= src[4];
-  dst->r_shoulder_lift= src[5];
-  dst->r_upper_arm_roll= src[6];
-  dst->r_elbow_flex= src[7];
-  dst->r_forearm_roll= src[8];
-  dst->r_wrist_flex= src[9];
-  dst->r_writ_roll= src[10];
-  dst->r_gripper= src[11];
-  dst->r_gripper_false= src[12];
-  dst->l_shoulder_pan= src[13];
-  dst->l_shoulder_lift= src[14];
-  dst->l_upper_arm_roll= src[15];
-  dst->l_elbow_flex= src[16];
-  dst->l_forearm_roll= src[17];
-  dst->l_wrist_flex= src[18];
-  dst->l_wrist_roll= src[19];
-  dst->l_gripper= src[20];
-  dst->l_gripper_false= src[21];
-}
-
+  dst->base_tx          = src[0] ; 
+  dst->base_ty          = src[1] ; 
+  dst->base_tz          = src[2] ; 
+  dst->base_rx          = src[3] ; 
+  dst->base_ry          = src[4] ; 
+  dst->base_rz          = src[5] ; 
+  dst->torso            = src[6] ; 
+  dst->head_pan         = src[7] ; 
+  dst->head_tilt        = src[8] ; 
+  dst->laser_tilt       = src[9] ; 
+  dst->r_shoulder_pan   = src[10];
+  dst->r_shoulder_lift  = src[11];
+  dst->r_upper_arm_roll = src[12];
+  dst->r_elbow_flex     = src[13];
+  dst->r_forearm_roll   = src[14];
+  dst->r_wrist_flex     = src[15];
+  dst->r_writ_roll      = src[16];
+  dst->r_gripper        = src[17];
+  dst->r_gripper_false  = src[18];
+  dst->l_shoulder_pan   = src[19];
+  dst->l_shoulder_lift  = src[20];
+  dst->l_upper_arm_roll = src[21];
+  dst->l_elbow_flex     = src[22];
+  dst->l_forearm_roll   = src[23];
+  dst->l_wrist_flex     = src[24];
+  dst->l_wrist_roll     = src[25];
+  dst->l_gripper        = src[26];
+  dst->l_gripper_false  = src[27];
+} 
+  
 static void QStr2doubles(PR2SM_QSTR* src, double* dst)
-{
-  dst[0]= src->torso;
-  dst[1]= src->head_pan;
-  dst[2]= src->head_tilt;
-  dst[3]= src->laser_tilt;
-  dst[4]= src->r_shoulder_pan;
-  dst[5]= src->r_shoulder_lift;
-  dst[6]= src->r_upper_arm_roll;
-  dst[7]= src->r_elbow_flex;
-  dst[8]= src->r_forearm_roll;
-  dst[9]= src->r_wrist_flex;
-  dst[10]= src->r_writ_roll;
-  dst[11]= src->r_gripper;
-  dst[12]= src->r_gripper_false;
-  dst[13]= src->l_shoulder_pan;
-  dst[14]= src->l_shoulder_lift;
-  dst[15]= src->l_upper_arm_roll;
-  dst[16]= src->l_elbow_flex;
-  dst[17]= src->l_forearm_roll;
-  dst[18]= src->l_wrist_flex;
-  dst[19]= src->l_wrist_roll;
-  dst[20]= src->l_gripper;
-  dst[21]= src->l_gripper_false;
+{ 
+  dst[0]=  src->base_tx;
+  dst[1]=  src->base_ty;
+  dst[2]=  src->base_tz;
+  dst[3]=  src->base_rx;
+  dst[4]=  src->base_ry;
+  dst[5]=  src->base_rz;
+  dst[6]=  src->torso;
+  dst[7]=  src->head_pan;
+  dst[8]=  src->head_tilt;
+  dst[9]=  src->laser_tilt;
+  dst[10]= src->r_shoulder_pan;
+  dst[11]= src->r_shoulder_lift;
+  dst[12]= src->r_upper_arm_roll;
+  dst[13]= src->r_elbow_flex;
+  dst[14]= src->r_forearm_roll;
+  dst[15]= src->r_wrist_flex;
+  dst[16]= src->r_writ_roll;
+  dst[17]= src->r_gripper;
+  dst[18]= src->r_gripper_false;
+  dst[19]= src->l_shoulder_pan;
+  dst[20]= src->l_shoulder_lift;
+  dst[21]= src->l_upper_arm_roll;
+  dst[22]= src->l_elbow_flex;
+  dst[23]= src->l_forearm_roll;
+  dst[24]= src->l_wrist_flex;
+  dst[25]= src->l_wrist_roll;
+  dst[26]= src->l_gripper;
+  dst[27]= src->l_gripper_false;
 }
 
 static int smConvertSM_MOTIONtoSM_TRAJ( SM_MOTION_MONO motion[], int nbJoints, SM_TRAJ &traj, int *report) {

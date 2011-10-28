@@ -41,7 +41,8 @@ typedef enum PR2SM_ROBOT_PART_ENUM {
   RARM,
   LARM,
   ARMS,
-  PR2NOHEAD
+  PR2NOHEAD,
+  BASE
 } PR2SM_ROBOT_PART_ENUM;
 
 typedef enum PR2SM_gripperGrabRelease {
@@ -66,6 +67,12 @@ typedef struct PR2SM_TRACK_STR {
 typedef struct PR2SM_QSTR{
   PR2SM_ROBOT_PART_ENUM robotPart;
   int relatif; // we use a int for 64 bits compatibility
+  double base_tx;
+  double base_ty;
+  double base_tz;
+  double base_rx;
+  double base_ry;
+  double base_rz;
   double torso;
   double head_pan;
   double head_tilt;

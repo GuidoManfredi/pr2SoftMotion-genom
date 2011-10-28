@@ -5,43 +5,50 @@ ControllerAmbassador::ControllerAmbassador(PR2SM_ROBOT_PART_ENUM robotPart, ros:
   robotPart_ = robotPart;
 
   switch (robotPart){
-    case TORSO:
-      command_pub_= nh->advertise<pr2_soft_controller::SM_TRAJ_STR_ROS>("torso_soft_controller/command", 1);
-      timescale_pub_= nh->advertise<std_msgs::Float64>("torso_soft_controller/timescale", 1);
-      state_sub_= nh->subscribe("torso_soft_controller/state", 1, &ControllerAmbassador::saveTimeCB, this);
-      debut_ = 0;
-      fin_ = 0;
-      break;
-    case HEAD:
-      command_pub_= nh->advertise<pr2_soft_controller::SM_TRAJ_STR_ROS>("head_soft_controller/command", 1);
-      timescale_pub_= nh->advertise<std_msgs::Float64>("head_soft_controller/timescale", 1);
-      state_sub_= nh->subscribe("head_soft_controller/state", 1, &ControllerAmbassador::saveTimeCB, this);
-      debut_ = 1;
-      fin_ = 2;
-      break;
-    case RARM:
-      command_pub_= nh->advertise<pr2_soft_controller::SM_TRAJ_STR_ROS>("r_arm_soft_controller/command", 1);
-      timescale_pub_= nh->advertise<std_msgs::Float64>("r_arm_soft_controller/timescale", 1);
-      state_sub_= nh->subscribe("r_arm_soft_controller/state", 1, &ControllerAmbassador::saveTimeCB, this);
-      debut_ = 4;
-      fin_ = 10;
-      break;
-    case LARM:
-      command_pub_= nh->advertise<pr2_soft_controller::SM_TRAJ_STR_ROS>("l_arm_soft_controller/command", 1);
-      timescale_pub_= nh->advertise<std_msgs::Float64>("l_arm_soft_controller/timescale", 1);
-      state_sub_= nh->subscribe("l_arm_soft_controller/state", 1, &ControllerAmbassador::saveTimeCB, this);
-      debut_ = 13;
-      fin_ = 19;
-      break;
-    case PR2SYN:
-      command_pub_= nh->advertise<pr2_soft_controller::SM_TRAJ_STR_ROS>("pr2_soft_controller/command", 1);
-      timescale_pub_= nh->advertise<std_msgs::Float64>("pr2_soft_controller/timescale", 1);
-      state_sub_= nh->subscribe("pr2_soft_controller/state", 1, &ControllerAmbassador::saveTimeCB, this);
-      debut_ = 0;
-      fin_ = 21;
-      break;
-    default:
-      printf("ERROR: Unknown robot part. No publisher/subscriber created.\n");
+  case BASE:
+    command_pub_= nh->advertise<pr2_soft_controller::SM_TRAJ_STR_ROS>("base_soft_controller/command", 1);
+    timescale_pub_= nh->advertise<std_msgs::Float64>("base_soft_controller/timescale", 1);
+    state_sub_= nh->subscribe("base_soft_controller/state", 1, &ControllerAmbassador::saveTimeBaseCB, this);
+    debut_ = 0;
+    fin_ = 5;
+    break; 
+  case TORSO:
+    command_pub_= nh->advertise<pr2_soft_controller::SM_TRAJ_STR_ROS>("torso_soft_controller/command", 1);
+    timescale_pub_= nh->advertise<std_msgs::Float64>("torso_soft_controller/timescale", 1);
+    state_sub_= nh->subscribe("torso_soft_controller/state", 1, &ControllerAmbassador::saveTimeCB, this);
+    debut_ = 6;
+    fin_ = 6;
+    break;
+  case HEAD:
+    command_pub_= nh->advertise<pr2_soft_controller::SM_TRAJ_STR_ROS>("head_soft_controller/command", 1);
+    timescale_pub_= nh->advertise<std_msgs::Float64>("head_soft_controller/timescale", 1);
+    state_sub_= nh->subscribe("head_soft_controller/state", 1, &ControllerAmbassador::saveTimeCB, this);
+    debut_ = 7;
+    fin_ = 8;
+    break;
+  case RARM:
+    command_pub_= nh->advertise<pr2_soft_controller::SM_TRAJ_STR_ROS>("r_arm_soft_controller/command", 1);
+    timescale_pub_= nh->advertise<std_msgs::Float64>("r_arm_soft_controller/timescale", 1);
+    state_sub_= nh->subscribe("r_arm_soft_controller/state", 1, &ControllerAmbassador::saveTimeCB, this);
+    debut_ = 10;
+    fin_ = 16;
+    break;
+  case LARM:
+    command_pub_= nh->advertise<pr2_soft_controller::SM_TRAJ_STR_ROS>("l_arm_soft_controller/command", 1);
+    timescale_pub_= nh->advertise<std_msgs::Float64>("l_arm_soft_controller/timescale", 1);
+    state_sub_= nh->subscribe("l_arm_soft_controller/state", 1, &ControllerAmbassador::saveTimeCB, this);
+    debut_ = 19;
+    fin_ = 25;
+    break;
+  case PR2SYN:
+    command_pub_= nh->advertise<pr2_soft_controller::SM_TRAJ_STR_ROS>("pr2_soft_controller/command", 1);
+    timescale_pub_= nh->advertise<std_msgs::Float64>("pr2_soft_controller/timescale", 1);
+    state_sub_= nh->subscribe("pr2_soft_controller/state", 1, &ControllerAmbassador::saveTimeCB, this);
+    debut_ = 6;
+    fin_ = 27;
+    break;
+  default:
+    printf("ERROR: Unknown robot part. No publisher/subscriber created.\n");
   }
 
   joint_state_sub_ = nh->subscribe("joint_states", 1, &ControllerAmbassador::savePoseCB, this);
@@ -171,7 +178,7 @@ bool ControllerAmbassador::loadTraj(SM_TRAJ_STR *smTraj, int debut, int fin)
   switch (robotPart_){
   case RARM:
     for(int i=0; i<smTraj->nbAxis; ++i){
-      if(i==8 || i==10 ) {
+      if(i==14 || i==16 ) {
 	//TODO test if circular dof are equal modulo 2*pi 
 	printf("i %d old %f new %f\n", i, smTraj->traj[i].seg[0].ic_x, vect_current_pose_[i-debut] );
 	smTraj->traj[i].seg[0].ic_x =  vect_current_pose_[i-debut];
@@ -181,7 +188,7 @@ bool ControllerAmbassador::loadTraj(SM_TRAJ_STR *smTraj, int debut, int fin)
     break;
   case LARM:
     for(int i=0; i<smTraj->nbAxis; ++i){
-      if(i==17 || i==19 ) { 
+      if(i==23 || i==25 ) { 
 	//TODO test if circular dof are equal modulo 2*pi 
 	printf("i %d old %f new %f\n", i, smTraj->traj[i].seg[0].ic_x, vect_current_pose_[i-debut] );
 	smTraj->traj[i].seg[0].ic_x =  vect_current_pose_[i-debut];
@@ -190,7 +197,8 @@ bool ControllerAmbassador::loadTraj(SM_TRAJ_STR *smTraj, int debut, int fin)
     }
     break;
   default:
-    printf("ERROR: ControllerAmbassador::loadTraj Unknown robot part.\n");
+    //printf("ERROR: ControllerAmbassador::loadTraj Unknown robot part.\n");
+    ;
   }
 
 
@@ -208,29 +216,35 @@ bool ControllerAmbassador::loadTraj(SM_TRAJ_STR *smTraj, int debut, int fin)
   for(int i=0; i< nbJoints_; i++) {
     if(fabs(vect_current_pose_[i] - cond[i+debut].x) >  vect_V_max_[i]*0.1) {
       switch (robotPart_){
+      case BASE:
+	printf("ERROR pr2SoftMotion loadTraj. Error init position, BASE\n");
+	break;
       case TORSO:
-	printf("ERROR pr2SoftMotion loadTraj. TORSO\n");
+	printf("ERROR pr2SoftMotion loadTraj. Error init position, TORSO\n");
 	break;
       case HEAD:
-	printf("ERROR pr2SoftMotion loadTraj. HEAD\n");
+	printf("ERROR pr2SoftMotion loadTraj. Error init position, HEAD\n");
 	break;
       case RARM:
-	printf("ERROR pr2SoftMotion loadTraj. RARM\n");
+	printf("ERROR pr2SoftMotion loadTraj. Error init position, RARM\n");
 	break;
       case LARM:
-	printf("ERROR pr2SoftMotion loadTraj. LARM\n");
+	printf("ERROR pr2SoftMotion loadTraj. Error init position, LARM\n");
 	break;
       case PR2SYN:
-	printf("ERROR pr2SoftMotion loadTraj. PR2SYN\n");
+	printf("ERROR pr2SoftMotion loadTraj. Error init position, PR2SYN\n");
 	break;
       default:
 	printf("ERROR: ControllerAmbassador::loadTraj Unknown robot part.\n");
       }
 
-      
-      printf("ERROR pr2SoftMotion loadTraj. Error Init Position at least for joint %d val=%f current %f initTraj %f threshold %f \n", i, fabs(vect_current_pose_[i] - cond[i+debut].x), vect_current_pose_[i], cond[i+debut].x, vect_V_max_[i]*0.1);
-      printf("ERROR pr2SoftMotion loadTraj. Aborting.\n");
-      return false;
+      if(robotPart_ != BASE) {
+	printf("ERROR pr2SoftMotion loadTraj. Error Init Position at least for joint %d val=%f current %f initTraj %f threshold %f \n", i, fabs(vect_current_pose_[i] - cond[i+debut].x), vect_current_pose_[i], cond[i+debut].x, vect_V_max_[i]*0.1);
+	printf("ERROR pr2SoftMotion loadTraj. Aborting.\n");
+	return false;
+      } else {
+	printf("ERROR pr2SoftMotion loadTraj. Error init position, BASE but continue the trajectory execution fir instance WARNING\n");
+      }
     }
   }
   
@@ -268,12 +282,34 @@ bool ControllerAmbassador::loadTraj(SM_TRAJ_STR *smTraj, int debut, int fin)
         }
     }
   }
+
+
+
+  switch (robotPart_){
+    // TODO : write in position in /map frame
+  case BASE:
+    tmpMotion.print();
+    printf("pr2SoftMotion: Controller Ambassador for BASE: trajectory loaded\n"); 
+    break;
+  default:
+    break;
+  }
   return true;
 }
 
 void ControllerAmbassador::sendTraj()
 {
   command_pub_.publish(smTrajROS_);
+
+  switch (robotPart_){
+    // TODO : write in position in /map frame
+  case BASE:
+    printf("pr2SoftMotion: Controller Ambassador for BASE: trajectory sent\n"); 
+    break;
+  default:
+    
+    break;
+  }
 }
 
 void ControllerAmbassador::saveTimeCB(const pr2_controllers_msgs::JointTrajectoryControllerStateConstPtr& msg)
@@ -282,10 +318,24 @@ void ControllerAmbassador::saveTimeCB(const pr2_controllers_msgs::JointTrajector
   time_from_start_= msg->actual.time_from_start.toSec();
 }
 
+void ControllerAmbassador::saveTimeBaseCB(const pr2_mechanism_controllers::BaseControllerState2ConstPtr& msg)
+{ 
+  //printf("Saving time %f.\n", msg->actual.time_from_start.toSec());
+  time_from_start_= 0;
+}
+
 // Saves the current pose of the robot in a vector
 void ControllerAmbassador::savePoseCB(const sensor_msgs::JointStateConstPtr& msg)
 {
   switch (robotPart_){
+    // TODO : write in position in /map frame
+    case BASE:
+      vect_current_pose_[0]= 0;	// base
+      vect_current_pose_[1]= 0;	// base
+      vect_current_pose_[2]= 0;	// base
+      vect_current_pose_[3]= 0;	// base
+      vect_current_pose_[4]= 0;	// base
+      vect_current_pose_[5]= 0;	// base
     case TORSO:
       vect_current_pose_[0]=  msg->position[12];  // torso
       break;
@@ -343,6 +393,14 @@ void ControllerAmbassador::savePoseCB(const sensor_msgs::JointStateConstPtr& msg
 void ControllerAmbassador::setMaxVelVect()
 {
   switch (robotPart_){
+    case BASE:
+      vect_V_max_[0] =	  10;//SDI_F->speedLimit * BASE_LIN_X_MAXVEL	      ;
+      vect_V_max_[1] =	  10;//SDI_F->speedLimit * BASE_LIN_Y_MAXVEL	      ;
+      vect_V_max_[2] =	  10;//SDI_F->speedLimit * BASE_LIN_Z_MAXVEL	      ;
+      vect_V_max_[3] =	  10;//SDI_F->speedLimit * BASE_ROT_X_MAXVEL	      ;
+      vect_V_max_[4] =	  10;//SDI_F->speedLimit * BASE_ROT_Y_MAXVEL	      ;
+      vect_V_max_[5] =	  10;//SDI_F->speedLimit * BASE_ROT_Z_MAXVEL	      ;
+
     case TORSO:
       vect_V_max_[0]=     SDI_F->speedLimit * TORSO_MAXVEL            ;
       break;

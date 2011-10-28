@@ -3,6 +3,7 @@
 
 #include "ros/ros.h"
 #include "pr2_controllers_msgs/JointTrajectoryControllerState.h"
+#include "pr2_mechanism_controllers/BaseControllerState2.h"
 #include "std_msgs/Float64.h"
 
 #include "pr2_soft_controller/SM_TRAJ_STR_ROS.h"
@@ -35,6 +36,7 @@ protected:
   bool loadTraj(SM_TRAJ_STR* smTraj, int debut, int fin);
   void sendTraj();
   void saveTimeCB(const pr2_controllers_msgs::JointTrajectoryControllerStateConstPtr& msg);
+  void saveTimeBaseCB(const pr2_mechanism_controllers::BaseControllerState2ConstPtr& msg);
   void savePoseCB(const sensor_msgs::JointStateConstPtr& msg);
   void setMaxVelVect(); 
 

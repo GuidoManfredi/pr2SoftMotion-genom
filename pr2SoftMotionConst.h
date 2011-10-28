@@ -34,12 +34,20 @@
 #define PR2SM_PERIOD_TIC 10 /* 1 tic = 10 ms */
 #define PR2SM_PERIOD 0.1  /* s */
 
-#define PR2SM_NBJOINT 22
+#define PR2SM_NBJOINT 28
+#define PR2SM_BASE_NBJOINTS 6
 #define PR2SM_ARM_NBJOINTS 7
 #define PR2SM_GRIPPER_NBJOINTS 2
 #define PR2SM_HEAD_NBJOINTS 2
 #define PR2SM_TORSO_NBJOINTS 1
 #define PR2SM_LASER_NBJOINTS 1
+
+#define BASE_LIN_X_MAXVEL 1
+#define BASE_LIN_Y_MAXVEL 1
+#define BASE_LIN_Z_MAXVEL 1
+#define BASE_ROT_X_MAXVEL 1 
+#define BASE_ROT_Y_MAXVEL 1
+#define BASE_ROT_Z_MAXVEL 1
 
 #define  TORSO_MAXVEL               0.013             
 #define  HEAD_PAN_MAXVEL            6
