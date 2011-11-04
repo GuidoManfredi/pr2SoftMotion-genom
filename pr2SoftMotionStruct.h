@@ -42,7 +42,8 @@ typedef enum PR2SM_ROBOT_PART_ENUM {
   LARM,
   ARMS,
   PR2NOHEAD,
-  BASE
+  BASE,
+  PR2FULL
 } PR2SM_ROBOT_PART_ENUM;
 
 typedef enum PR2SM_gripperGrabRelease {

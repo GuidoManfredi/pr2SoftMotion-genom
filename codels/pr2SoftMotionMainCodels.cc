@@ -270,6 +270,13 @@ pr2SoftMotionTrackQStart(PR2SM_TRACK_STR *trackStr, int *report)
         rArmAmbassador->trackQ(&smTraj, report);
         lArmAmbassador->trackQ(&smTraj, report);
         break;
+      case PR2FULL:
+	baseAmbassador->trackQ(&smTraj, report);
+        torsoAmbassador->trackQ(&smTraj, report);
+        headAmbassador->trackQ(&smTraj, report);
+        rArmAmbassador->trackQ(&smTraj, report);
+        lArmAmbassador->trackQ(&smTraj, report); 
+        break;
       default:
         printf("Error: unknown robot part. Motion cancelled.\n");
         return ETHER; 
@@ -326,7 +333,14 @@ pr2SoftMotionTrackQMain(PR2SM_TRACK_STR *trackStr, int *report)
                 lArmAmbassador->monitorTraj() &&
 		torsoAmbassador->monitorTraj() ;
       break;
-
+    case PR2FULL: 
+      // we wait for all parts to finish
+      finished= baseAmbassador->monitorTraj() &&  
+	        headAmbassador->monitorTraj() && 
+                torsoAmbassador->monitorTraj() &&
+                rArmAmbassador->monitorTraj() &&
+                lArmAmbassador->monitorTraj();
+      break;
 
     default:
       printf("Error: unknown robot part. Motion cancelled.\n");
