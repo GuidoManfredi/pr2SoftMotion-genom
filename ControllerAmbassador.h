@@ -17,6 +17,10 @@
 #include "softMotion/softMotionStruct.h"
 #include "softMotion/softMotionStructGenom.h"
 
+#include <actionlib/client/simple_action_client.h>
+#include <actionlib/client/terminal_state.h>
+#include <soft_move_base/SoftMoveBaseAction.h>
+
 #include <vector>
 #include <string>
 
@@ -46,6 +50,7 @@ protected:
   ros::Publisher command_pub_;
   ros::Subscriber state_sub_;
   ros::Subscriber joint_state_sub_;
+  actionlib::SimpleActionClient<soft_move_base::SoftMoveBaseAction>* ac;
 
   POSTER_ID posterId_;
   int currentTrajId_;

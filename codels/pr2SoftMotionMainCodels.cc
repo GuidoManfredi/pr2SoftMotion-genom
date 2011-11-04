@@ -537,7 +537,7 @@ ACTIVITY_EVENT
 pr2SoftMotionMoveHeadStart(PR2SM_xyzHead *xyzHead, int *report)
 {
   tf::TransformListener listener;
-  double pan, tilt;
+  std_msgs::Float64 pan, tilt;
   //transforming point into robot frame
   geometry_msgs::PointStamped goal;
   geometry_msgs::PointStamped goalRobotFrame;
@@ -564,8 +564,8 @@ pr2SoftMotionMoveHeadStart(PR2SM_xyzHead *xyzHead, int *report)
   listener.transformPoint("base_footprint", goal, goalRobotFrame);
   listener.transformPoint("head_pan_link", goal, goalPanFrame);
 
-  pan= atan2(goalRobotFrame.point.y, goalRobotFrame.point.x);
-  tilt= atan2(-goalPanFrame.point.z, sqrt(pow(goalPanFrame.point.x,2)+pow(goalPanFrame.point.y,2)));
+  pan.data= atan2(goalRobotFrame.point.y, goalRobotFrame.point.x);
+  tilt.data= atan2(-goalPanFrame.point.z, sqrt(pow(goalPanFrame.point.x,2)+pow(goalPanFrame.point.y,2)));
 
   //printf("%f %f\n", pan, tilt);
   pan_head_pub.publish(pan);
@@ -616,7 +616,7 @@ ACTIVITY_EVENT
 pr2SoftMotionHeadTrackMain(PR2SM_xyzHead *xyzHead, int *report)
 {
   tf::TransformListener listener;
-  double pan, tilt;
+  std_msgs::Float64 pan, tilt;
   //transforming point into robot frame
   geometry_msgs::PointStamped goal;
   geometry_msgs::PointStamped goalRobotFrame;
@@ -643,8 +643,8 @@ pr2SoftMotionHeadTrackMain(PR2SM_xyzHead *xyzHead, int *report)
   listener.transformPoint("base_footprint", goal, goalRobotFrame);
   listener.transformPoint("head_pan_link", goal, goalPanFrame);
 
-  pan= atan2(goalRobotFrame.point.y, goalRobotFrame.point.x);
-  tilt= atan2(-goalPanFrame.point.z, sqrt(pow(goalPanFrame.point.x,2)+pow(goalPanFrame.point.y,2)));
+  pan.data = atan2(goalRobotFrame.point.y, goalRobotFrame.point.x);
+  tilt.data = atan2(-goalPanFrame.point.z, sqrt(pow(goalPanFrame.point.x,2)+pow(goalPanFrame.point.y,2)));
 
   //printf("%f %f\n", pan, tilt);
   pan_head_pub.publish(pan);

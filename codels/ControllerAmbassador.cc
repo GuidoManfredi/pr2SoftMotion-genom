@@ -6,9 +6,7 @@ ControllerAmbassador::ControllerAmbassador(PR2SM_ROBOT_PART_ENUM robotPart, ros:
 
   switch (robotPart){
   case BASE:
-    command_pub_= nh->advertise<pr2_soft_controller::SM_TRAJ_STR_ROS>("base_soft_controller/command", 1);
-    timescale_pub_= nh->advertise<std_msgs::Float64>("base_soft_controller/timescale", 1);
-    state_sub_= nh->subscribe("base_soft_controller/state", 1, &ControllerAmbassador::saveTimeBaseCB, this);
+    ac = new actionlib::SimpleActionClient<soft_move_base::SoftMoveBaseAction>("soft_move_base", true);
     debut_ = 0;
     fin_ = 5;
     break; 
