@@ -53,13 +53,10 @@ EXTRA_INCLUDES += \
   -I/opt/ros/diamondback/stacks/pr2_object_manipulation/pr2_gripper_sensor_msgs/msg_gen/cpp/include \
   -I/opt/ros/diamondback/stacks/pr2_object_manipulation/pr2_gripper_sensor_msgs/msg_gen/cpp/include \
   -I/opt/ros/diamondback/stacks/pr2_object_manipulation/pr2_gripper_sensor_msgs/msg_gen/cpp/include \
-  -I$(ROBOTPKG_BASE)/src/ros-nodes/soft_controllers/pr2_soft_controller/msg_gen/cpp/include \
-  -I$(ROBOTPKG_BASE)/src/ros-nodes/soft_controllers/pr2_soft_controller/include \
-  -I$(ROBOTPKG_BASE)/src/ros-nodes/soft_controllers/pr2_soft_controller/msg_gen/cpp/include \
-  -I$(ROBOTPKG_BASE)/src/ros-nodes/soft_controllers/soft_move_base/msg_gen/cpp/include \
-  -I$(ROBOTPKG_BASE)/src/ros-nodes/soft_controllers/soft_move_base/msg_gen/cpp/include \
-  -I$(ROBOTPKG_BASE)/src/ros-nodes/soft_controllers/soft_move_base/include
-
+  -I/u/gmanfred/ros_overlay/release/soft_controllers/soft_move_base/msg_gen/cpp/include \
+  -I/u/gmanfred/ros_overlay/release/soft_controllers/soft_move_base/include \
+  -I/u/gmanfred/ros_overlay/release/soft_controllers/pr2_soft_controller/include \
+  -I/u/gmanfred/ros_overlay/release/soft_controllers/pr2_soft_controller/msg_gen/cpp/include 
 
 
 #

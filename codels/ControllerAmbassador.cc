@@ -281,33 +281,35 @@ bool ControllerAmbassador::loadTraj(SM_TRAJ_STR *smTraj, int debut, int fin)
     }
   }
 
-
-
-  switch (robotPart_){
-    // TODO : write in position in /map frame
-  case BASE:
-    tmpMotion.print();
-    printf("pr2SoftMotion: Controller Ambassador for BASE: trajectory loaded\n"); 
-    break;
-  default:
-    break;
-  }
   return true;
 }
 
 void ControllerAmbassador::sendTraj()
 {
+/*
   command_pub_.publish(smTrajROS_);
 
   switch (robotPart_){
     // TODO : write in position in /map frame
   case BASE:
+    soft_move_base::SoftMoveBaseGoal goal;
+    goal.traj = smTrajROS_;
+    ac->sendGoal(goal);
     printf("pr2SoftMotion: Controller Ambassador for BASE: trajectory sent\n"); 
     break;
   default:
     
     break;
   }
+*/
+  if(robotPart_ == BASE)
+  {
+    soft_move_base::SoftMoveBaseGoal goal;
+    goal.traj = smTrajROS_;
+    ac->sendGoal(goal);
+  }
+  else
+    command_pub_.publish(smTrajROS_); 
 }
 
 void ControllerAmbassador::saveTimeCB(const pr2_controllers_msgs::JointTrajectoryControllerStateConstPtr& msg)
