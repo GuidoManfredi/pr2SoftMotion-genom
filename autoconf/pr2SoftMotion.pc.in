@@ -4,7 +4,7 @@ libdir=@libdir@
 includedir=@includedir@
 genomfile=pr2SoftMotion.gen
 genomflags=-t 
-cppflags= -I/u/xbroquer/openrobots/include -I/u/xbroquer/openrobots/include/genBasic -I/u/xbroquer/openrobots/include -I/u/xbroquer/openrobots/include/genManip -I/u/xbroquer/openrobots/include/gbM -I/u/xbroquer/openrobots/include/genBasic -I/u/xbroquer/openrobots/include -I/u/xbroquer/openrobots/include/genHum -I/u/xbroquer/openrobots/include/gbM -I/u/xbroquer/openrobots/include
+cppflags= -I/u/gmanfred/openrobots/include -I/u/gmanfred/openrobots/include/genBasic -I/u/gmanfred/openrobots/include -I/u/gmanfred/openrobots/include/genManip -I/u/gmanfred/openrobots/include/gbM -I/u/gmanfred/openrobots/include/genBasic -I/u/gmanfred/openrobots/include -I/u/gmanfred/openrobots/include/genHum -I/u/gmanfred/openrobots/include/gbM -I/u/gmanfred/openrobots/include
 
 Name: pr2SoftMotion
 Description: pr2SoftMotion Genom module
