@@ -104,11 +104,19 @@ bool ControllerAmbassador::monitorTraj()
   publishTimeScale();
 
   ros::spinOnce();
-  if( fabs(time_from_start_ - motionDuration_) < 0.000001){
-    return true;
+
+  if(robotPart_ == BASE)
+  {
+    if( ac->getState() == actionlib::SimpleClientGoalState::SUCCEEDED )
+      return true;
   }
   else
-    return false;
+  {
+    if( fabs(time_from_start_ - motionDuration_) < 0.000001)
+      return true; 
+  }
+    
+  return false;
 }
 
 void ControllerAmbassador::publishTimeScale()
