@@ -159,8 +159,8 @@ void ControllerAmbassador::computeGoto(PR2SM_QSTR *qGoto, int *report)
       limit.maxVel  = vect_V_max_[n];
       limits.push_back(limit);
     }
-  } else {
-
+  }
+  else {
     for(int i=debut_, n=0; i<debut_+nbJoints_; ++i, ++n) {
       cond.x = vect_current_pose_[n];
       cond.v = 0.0;
@@ -255,6 +255,9 @@ bool ControllerAmbassador::loadTraj(SM_TRAJ_STR *smTraj, int debut, int fin)
     smTrajROS_.timePreserved= smTraj->timePreserved;
     smTrajROS_.qStart.resize(smTrajROS_.nbAxis);
     smTrajROS_.qGoal.resize(smTrajROS_.nbAxis);
+    smTrajROS_.jmax.resize(smTrajROS_.nbAxis);
+    smTrajROS_.amax.resize(smTrajROS_.nbAxis);
+    smTrajROS_.vmax.resize(smTrajROS_.nbAxis);
     smTrajROS_.traj.resize(smTrajROS_.nbAxis);
     // we need the joints trajectory between debut and fin
     for(int i=debut, n=0; i<fin+1; ++i, ++n){
