@@ -160,7 +160,6 @@ pr2SoftMotionInitMain(int *report)
   SDI_F->sensorTresholds.releaseAcc= 4.0;
   SDI_F->sensorTresholds.releaseSlip= 0.05;
 
-
   SDI_F->isInit = GEN_TRUE;
 
   pan_head_pub= nh->advertise<std_msgs::Float64>("pan_head_soft_controller/command", 1);
@@ -204,7 +203,6 @@ pr2SoftMotionTrackQStart(PR2SM_TRACK_STR *trackStr, int *report)
     case PR2SM_TRACK_FILE:
       printf("Reading from file \n");
       currentMotion.load(trackStr->posterName.name, NULL);      
-      //currentMotion.computeTimeOnTraj();
       currentMotion.convertToSM_TRAJ_STR(&smTraj);
       break;
   

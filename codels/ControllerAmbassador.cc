@@ -4,10 +4,10 @@ ControllerAmbassador::ControllerAmbassador(PR2SM_ROBOT_PART_ENUM robotPart, ros:
 {
   robotPart_ = robotPart;
 
-  switch (robotPart){
+  switch (robotPart_){
   case BASE:
     ac = new actionlib::SimpleActionClient<soft_move_base::SoftMoveBaseAction>("soft_move_base", true);
-    timescale_pub_ = nh->advertise<std_msgs::Float64>("sodt_move_base/timescale",1);
+    timescale_pub_= nh->advertise<std_msgs::Float64>("soft_move_base/timescale", 1);
     debut_ = 0;
     fin_ = 5;
     break; 
@@ -50,7 +50,10 @@ ControllerAmbassador::ControllerAmbassador(PR2SM_ROBOT_PART_ENUM robotPart, ros:
     printf("ERROR: Unknown robot part. No publisher/subscriber created.\n");
   }
 
-  joint_state_sub_ = nh->subscribe("joint_states", 1, &ControllerAmbassador::savePoseCB, this);
+  if(robotPart_ == BASE)
+    joint_state_sub_ = nh->subscribe("amcl_pose", 1, &ControllerAmbassador::saveBasePoseCB, this);
+  else
+    joint_state_sub_ = nh->subscribe("joint_states", 1, &ControllerAmbassador::savePoseCB, this);
 
   currentTrajId_= -1;
   // to be set by findPoster
@@ -64,31 +67,33 @@ ControllerAmbassador::ControllerAmbassador(PR2SM_ROBOT_PART_ENUM robotPart, ros:
   vect_A_max_= (double*)malloc(nbJoints_*sizeof(double)); 
   vect_V_max_= (double*)malloc(nbJoints_*sizeof(double)); 
   smTraj_ = (SM_TRAJ_STR*)malloc(sizeof(SM_TRAJ_STR));
+  
+  // compute and set max vel/acc/jerk vectors
+  setRatios(1,3);  // default values
 }
 
 bool ControllerAmbassador::trackQ(SM_TRAJ_STR *sm_traj_str, int *report)
 {
-  //printf("TrackQ: Loading traj...\n");
-  if(loadTraj(sm_traj_str, debut_, fin_) != true) {
+  // load a trajectory from a SM_TRAJ_STR
+  if(! loadTraj(sm_traj_str, debut_, fin_) ) 
     return false;
-  }
-  //printf("TrackQ: Sending traj...\n");
+  
+  // and send it to the concerned controllers
   sendTraj();
-  //printf("TrackQ: Waiting for completion...\n");
 
   return true;
 }
 
 bool ControllerAmbassador::gotoQ(PR2SM_QSTR *qGoto, int *report)
 {
-  setMaxVelVect(); 
-  //printf("GotoQ: Computing traj\n");
+  //setMaxVelVect();
+  // compute a trajectory from current
+  // position to goal
   computeGoto(qGoto, report);
-  //printf("GotoQ: Loading traj\n");
+  // load the former trajectory
   loadTraj(smTraj_, 0, nbJoints_-1);
-  //printf("GotoQ: Sending traj.\n");
+  // send it to the concerned controller
   sendTraj();
-  //printf("GotoQ: Trajectory sent\n");
 
   return true;
 }
@@ -100,7 +105,6 @@ bool ControllerAmbassador::monitorTraj()
 
   ros::spinOnce();
   if( fabs(time_from_start_ - motionDuration_) < 0.000001){
-    //printf("Motion finished\n");
     return true;
   }
   else
@@ -121,6 +125,7 @@ void ControllerAmbassador::setRatios(double accVel, double jerkAcc)
 {
   accVelRatio_= accVel;
   jerkAccRatio_= jerkAcc;
+  setMaxVelVect();
 }
 
 void ControllerAmbassador::computeGoto(PR2SM_QSTR *qGoto, int *report)
@@ -189,33 +194,22 @@ bool ControllerAmbassador::loadTraj(SM_TRAJ_STR *smTraj, int debut, int fin)
   ros::spinOnce();
 
   //fix initial conditions for circular dofs
-  switch (robotPart_){
-  case RARM:
-    for(int i=0; i<smTraj->nbAxis; ++i){
-      if(i==14 || i==16 ) {
-	//TODO test if circular dof are equal modulo 2*pi 
-	printf("i %d old %f new %f\n", i, smTraj->traj[i].seg[0].ic_x, vect_current_pose_[i-debut] );
-	smTraj->traj[i].seg[0].ic_x =  vect_current_pose_[i-debut];
-	smTraj->qStart[i] =  vect_current_pose_[i-debut];
-      } 
-    }
-    break;
-  case LARM:
-    for(int i=0; i<smTraj->nbAxis; ++i){
-      if(i==23 || i==25 ) { 
-	//TODO test if circular dof are equal modulo 2*pi 
-	printf("i %d old %f new %f\n", i, smTraj->traj[i].seg[0].ic_x, vect_current_pose_[i-debut] );
-	smTraj->traj[i].seg[0].ic_x =  vect_current_pose_[i-debut];
-	smTraj->qStart[i] =  vect_current_pose_[i-debut];
-      } 
-    }
-    break;
-  default:
-    //printf("ERROR: ControllerAmbassador::loadTraj Unknown robot part.\n");
-    ;
+  // namely wrist and forearm for each arm
+  if (robotPart_ == RARM )
+  {
+    smTraj->traj[14].seg[0].ic_x =  vect_current_pose_[14-debut];
+    smTraj->qStart[14] =  vect_current_pose_[14-debut];
+    smTraj->traj[16].seg[0].ic_x =  vect_current_pose_[16-debut];
+    smTraj->qStart[16] =  vect_current_pose_[16-debut];
   }
-
-
+  else if( robotPart_ == LARM )
+  {
+    smTraj->traj[23].seg[0].ic_x =  vect_current_pose_[23-debut];
+    smTraj->qStart[23] =  vect_current_pose_[23-debut];
+    smTraj->traj[25].seg[0].ic_x =  vect_current_pose_[25-debut];
+    smTraj->qStart[22] =  vect_current_pose_[25-debut]; 
+  }
+  
   // compute duration. This is ugly but we have to make sure the duration
   //has been computed.
   SM_TRAJ tmpMotion;
@@ -224,40 +218,24 @@ bool ControllerAmbassador::loadTraj(SM_TRAJ_STR *smTraj, int debut, int fin)
   tmpMotion.computeTimeOnTraj();
 
   /* Check the initial configuration of the trajectory */
-  setMaxVelVect();
   std::vector<SM_COND> cond;
   tmpMotion.getMotionCond(0.0 , cond);
   for(int i=0; i< nbJoints_; i++) {
     if(fabs(vect_current_pose_[i] - cond[i+debut].x) >  vect_V_max_[i]*0.1) {
-      switch (robotPart_){
-      case BASE:
-	printf("ERROR pr2SoftMotion loadTraj. Error init position, BASE\n");
-	break;
-      case TORSO:
-	printf("ERROR pr2SoftMotion loadTraj. Error init position, TORSO\n");
-	break;
-      case HEAD:
-	printf("ERROR pr2SoftMotion loadTraj. Error init position, HEAD\n");
-	break;
-      case RARM:
-	printf("ERROR pr2SoftMotion loadTraj. Error init position, RARM\n");
-	break;
-      case LARM:
-	printf("ERROR pr2SoftMotion loadTraj. Error init position, LARM\n");
-	break;
-      case PR2SYN:
-	printf("ERROR pr2SoftMotion loadTraj. Error init position, PR2SYN\n");
-	break;
-      default:
-	printf("ERROR: ControllerAmbassador::loadTraj Unknown robot part.\n");
-      }
-
-      if(robotPart_ != BASE) {
-	printf("ERROR pr2SoftMotion loadTraj. Error Init Position at least for joint %d val=%f current %f initTraj %f threshold %f \n", i, fabs(vect_current_pose_[i] - cond[i+debut].x), vect_current_pose_[i], cond[i+debut].x, vect_V_max_[i]*0.1);
-	printf("ERROR pr2SoftMotion loadTraj. Aborting.\n");
+      if(robotPart_ != BASE)
+      {
+	printf("ERROR pr2SoftMotion loadTraj. \
+		Invalid init position for robotpart %d joint %d: \
+		val=%f current %f initTraj %f threshold %f",
+		robotPart_, i, fabs(vect_current_pose_[i] - cond[i+debut].x),
+		vect_current_pose_[i], cond[i+debut].x, vect_V_max_[i]*0.1);
+	printf("Aborting.\n");
 	return false;
-      } else {
-	printf("ERROR pr2SoftMotion loadTraj. Error init position, BASE but continue the trajectory execution fir instance WARNING\n");
+      } 
+      else
+      {
+	printf("WARNING pr2SoftMotion loadTraj. \
+		Invalid init position, BASE\n");
       }
     }
   }
@@ -267,7 +245,8 @@ bool ControllerAmbassador::loadTraj(SM_TRAJ_STR *smTraj, int debut, int fin)
   tmpMotion.convertToSM_TRAJ_STR( smTraj );
 
   if(SDI_F->motionIsAllowed == GEN_TRUE) {
-    // copy of the softmotion trajectory into the ros trajectory 
+    // copy of the softmotion trajectory into the ros trajectory
+ 
     currentTrajId_= smTraj->trajId;
 
     smTrajROS_.trajId= currentTrajId_;
@@ -281,6 +260,9 @@ bool ControllerAmbassador::loadTraj(SM_TRAJ_STR *smTraj, int debut, int fin)
     for(int i=debut, n=0; i<fin+1; ++i, ++n){
         smTrajROS_.qStart[n] = smTraj->qStart[i];
         smTrajROS_.qGoal[n] = smTraj->qGoal[i];
+        smTrajROS_.jmax[n] = smTraj->jmax[n];
+        smTrajROS_.amax[n] = smTraj->amax[n];
+        smTrajROS_.vmax[n] = smTraj->vmax[n];
         smTrajROS_.traj[n].nbSeg= smTraj->traj[i].nbSeg;
         smTrajROS_.traj[n].unsused= smTraj->traj[i].unsused;
         smTrajROS_.traj[n].seg.resize(smTrajROS_.traj[n].nbSeg);
@@ -297,27 +279,12 @@ bool ControllerAmbassador::loadTraj(SM_TRAJ_STR *smTraj, int debut, int fin)
     }
   }
 
+
   return true;
 }
 
 void ControllerAmbassador::sendTraj()
 {
-/*
-  command_pub_.publish(smTrajROS_);
-
-  switch (robotPart_){
-    // TODO : write in position in /map frame
-  case BASE:
-    soft_move_base::SoftMoveBaseGoal goal;
-    goal.traj = smTrajROS_;
-    ac->sendGoal(goal);
-    printf("pr2SoftMotion: Controller Ambassador for BASE: trajectory sent\n"); 
-    break;
-  default:
-    
-    break;
-  }
-*/
   if(robotPart_ == BASE)
   {
     soft_move_base::SoftMoveBaseGoal goal;
@@ -325,33 +292,32 @@ void ControllerAmbassador::sendTraj()
     ac->sendGoal(goal);
   }
   else
+  {
     command_pub_.publish(smTrajROS_); 
+  }
 }
 
 void ControllerAmbassador::saveTimeCB(const pr2_controllers_msgs::JointTrajectoryControllerStateConstPtr& msg)
 { 
-  //printf("Saving time %f.\n", msg->actual.time_from_start.toSec());
   time_from_start_= msg->actual.time_from_start.toSec();
 }
 
-void ControllerAmbassador::saveTimeBaseCB(const pr2_mechanism_controllers::BaseControllerState2ConstPtr& msg)
-{ 
-  //printf("Saving time %f.\n", msg->actual.time_from_start.toSec());
-  time_from_start_= 0;
+// Saves the current pose of the robot in a vector
+void ControllerAmbassador::saveBasePoseCB(const geometry_msgs::PoseWithCovarianceStampedConstPtr& msg)
+{
+  vect_current_pose_[0]= msg->pose.pose.position.x;			// base
+  vect_current_pose_[1]= msg->pose.pose.position.y;			// base
+  vect_current_pose_[2]= 0.0;						// base
+  
+  vect_current_pose_[3]= 0.0;						// base
+  vect_current_pose_[4]= 0.0;						// base
+  vect_current_pose_[5]= tf::getYaw(msg->pose.pose.orientation);	// base
 }
 
 // Saves the current pose of the robot in a vector
 void ControllerAmbassador::savePoseCB(const sensor_msgs::JointStateConstPtr& msg)
 {
   switch (robotPart_){
-    // TODO : write in position in /map frame
-    case BASE:
-      vect_current_pose_[0]= 0;	// base
-      vect_current_pose_[1]= 0;	// base
-      vect_current_pose_[2]= 0;	// base
-      vect_current_pose_[3]= 0;	// base
-      vect_current_pose_[4]= 0;	// base
-      vect_current_pose_[5]= 0;	// base
     case TORSO:
       vect_current_pose_[0]=  msg->position[12];  // torso
       break;
@@ -467,7 +433,7 @@ void ControllerAmbassador::setMaxVelVect()
       vect_V_max_[21]= SDI_F->speedLimit * L_GRIPPER_FALSE_MAXVEL  ;
       break;
     default:
-      printf("ERROR: SetMaxVelVect: Unknown robot part. GotoQ will certainly fail.\n");
+      printf("ERROR: SetMaxVelVect: Unknown robot part.\n");
   }
 
   for(int i=0; i< nbJoints_; ++i) {
