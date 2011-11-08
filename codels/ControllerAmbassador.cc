@@ -7,6 +7,7 @@ ControllerAmbassador::ControllerAmbassador(PR2SM_ROBOT_PART_ENUM robotPart, ros:
   switch (robotPart){
   case BASE:
     ac = new actionlib::SimpleActionClient<soft_move_base::SoftMoveBaseAction>("soft_move_base", true);
+    timescale_pub_ = nh->advertise<std_msgs::Float64>("sodt_move_base/timescale",1);
     debut_ = 0;
     fin_ = 5;
     break; 
@@ -128,38 +129,53 @@ void ControllerAmbassador::computeGoto(PR2SM_QSTR *qGoto, int *report)
   QStr2doubles(qGoto, qGotod);
   
   SM_TRAJ traj;
-  SM_MOTION_MONO motion[PR2SM_NBJOINT];
+  std::vector<SM_COND> IC; 
+  std::vector<SM_COND> FC;
+  std::vector<SM_LIMITS> limits;
+  SM_COND cond;
+  SM_LIMITS limit; 
 
   ros::spinOnce();
 
-  memset(motion, 0, nbJoints_*sizeof(SM_MOTION_MONO));
-
   if(qGoto->relatif != 0){
     for(int i=debut_, n=0; i<debut_+nbJoints_; ++i, ++n){
-      motion[n].IC.x = vect_current_pose_[n];
-      motion[n].IC.v = 0.0 ;
-      motion[n].IC.a = 0.0 ;
+      cond.x =  vect_current_pose_[n];
+      cond.v =  0.0;
+      cond.a = 0.0;
+      IC.push_back(cond);
 
-      motion[n].FC.x = vect_current_pose_[n] + qGotod[i];
-      motion[n].FC.v = 0.0 ;
-      motion[n].FC.a = 0.0 ;
+      cond.x = vect_current_pose_[n] + qGotod[i];
+      cond.v = 0.0;
+      cond.a = 0.0;
+      FC.push_back(cond);
+
+      limit.maxJerk = vect_J_max_[n];
+      limit.maxAcc  = vect_A_max_[n];
+      limit.maxVel  = vect_V_max_[n];
+      limits.push_back(limit);
     }
   } else {
 
     for(int i=debut_, n=0; i<debut_+nbJoints_; ++i, ++n) {
-      motion[n].IC.x = vect_current_pose_[n];
-      motion[n].IC.v = 0.0 ;
-      motion[n].IC.a = 0.0 ;
+      cond.x = vect_current_pose_[n];
+      cond.v = 0.0;
+      cond.a = 0.0;
+      IC.push_back(cond);
 
-      motion[n].FC.x = qGotod[i];
-      motion[n].FC.v = 0.0 ;
-      motion[n].FC.a = 0.0 ;
+      cond.x = qGotod[i];
+      cond.v = 0.0;
+      cond.a = 0.0;
+      FC.push_back(cond);
+
+      limit.maxJerk = vect_J_max_[n];
+      limit.maxAcc  = vect_A_max_[n];
+      limit.maxVel  = vect_V_max_[n];
+      limits.push_back(limit);
     }
   }
 
   // Compute soft motion between initial and final conditions
-  sm_ComputeSoftMotionPointToPoint_gen(nbJoints_, vect_J_max_, vect_A_max_, vect_V_max_, motion);
-  smConvertSM_MOTIONtoSM_TRAJ(motion, nbJoints_, traj, report);
+  traj.computeTraj(IC, FC, limits, SM_TRAJ::SM_INDEPENDANT);
   traj.convertToSM_TRAJ_STR(smTraj_);
 }
 
