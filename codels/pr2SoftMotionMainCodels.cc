@@ -269,7 +269,7 @@ pr2SoftMotionTrackQStart(PR2SM_TRACK_STR *trackStr, int *report)
         lArmAmbassador->trackQ(&smTraj, report);
         break;
       case PR2FULL:
-	baseAmbassador->trackQ(&smTraj, report);
+        baseAmbassador->trackQ(&smTraj, report);
         torsoAmbassador->trackQ(&smTraj, report);
         headAmbassador->trackQ(&smTraj, report);
         rArmAmbassador->trackQ(&smTraj, report);
@@ -297,6 +297,7 @@ pr2SoftMotionTrackQMain(PR2SM_TRACK_STR *trackStr, int *report)
   switch(trackStr->robotPart){
     case BASE:
       finished= baseAmbassador->monitorTraj();
+      finished= true;
       break;
     case HEAD:
       finished= headAmbassador->monitorTraj();
@@ -333,11 +334,16 @@ pr2SoftMotionTrackQMain(PR2SM_TRACK_STR *trackStr, int *report)
       break;
     case PR2FULL: 
       // we wait for all parts to finish
-      finished= baseAmbassador->monitorTraj() &&  
-	        headAmbassador->monitorTraj() && 
-                torsoAmbassador->monitorTraj() &&
-                rArmAmbassador->monitorTraj() &&
-                lArmAmbassador->monitorTraj();
+      //finished= baseAmbassador->monitorTraj() &&  
+      //          headAmbassador->monitorTraj() && 
+      //          torsoAmbassador->monitorTraj() &&
+      //          rArmAmbassador->monitorTraj() &&
+      //          lArmAmbassador->monitorTraj();
+      
+      finished=  headAmbassador->monitorTraj() && 
+	torsoAmbassador->monitorTraj() &&
+	rArmAmbassador->monitorTraj() &&
+	lArmAmbassador->monitorTraj();
       break;
 
     default:
