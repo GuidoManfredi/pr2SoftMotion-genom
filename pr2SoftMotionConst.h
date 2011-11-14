@@ -42,12 +42,12 @@
 #define PR2SM_TORSO_NBJOINTS 1
 #define PR2SM_LASER_NBJOINTS 1
 
-#define BASE_LIN_X_MAXVEL 1
-#define BASE_LIN_Y_MAXVEL 1
-#define BASE_LIN_Z_MAXVEL 1
-#define BASE_ROT_X_MAXVEL 1 
-#define BASE_ROT_Y_MAXVEL 1
-#define BASE_ROT_Z_MAXVEL 1
+#define BASE_LIN_X_MAXVEL 0.6
+#define BASE_LIN_Y_MAXVEL 0.6
+#define BASE_LIN_Z_MAXVEL 0.6
+#define BASE_ROT_X_MAXVEL 0.6
+#define BASE_ROT_Y_MAXVEL 0.6
+#define BASE_ROT_Z_MAXVEL 0.6
 
 #define  TORSO_MAXVEL               0.013             
 #define  HEAD_PAN_MAXVEL            6

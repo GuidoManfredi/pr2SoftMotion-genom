@@ -125,7 +125,7 @@ void ControllerAmbassador::publishTimeScale()
   //ROS_INFO("using robotPart:%d", robotPart_);
   //minus 1 because ENUMs the ENUM PR2(position 0) is never
   // called.
-  timescale.data= SDI_F->timeScale.timescale[robotPart_-1];
+  timescale.data= SDI_F->timeScale.timescale[robotPart_];
   timescale_pub_.publish(timescale);
 }
 
@@ -240,8 +240,7 @@ bool ControllerAmbassador::loadTraj(SM_TRAJ_STR *smTraj, int debut, int fin)
 	printf("Aborting.\n");
 	return false;
       } 
-      else
-      {
+      else {
 	printf("WARNING pr2SoftMotion loadTraj. \
 		Invalid init position, BASE\n");
       }
@@ -387,12 +386,12 @@ void ControllerAmbassador::setMaxVelVect()
 {
   switch (robotPart_){
     case BASE:
-      vect_V_max_[0] =	  10;//SDI_F->speedLimit * BASE_LIN_X_MAXVEL	      ;
-      vect_V_max_[1] =	  10;//SDI_F->speedLimit * BASE_LIN_Y_MAXVEL	      ;
-      vect_V_max_[2] =	  10;//SDI_F->speedLimit * BASE_LIN_Z_MAXVEL	      ;
-      vect_V_max_[3] =	  10;//SDI_F->speedLimit * BASE_ROT_X_MAXVEL	      ;
-      vect_V_max_[4] =	  10;//SDI_F->speedLimit * BASE_ROT_Y_MAXVEL	      ;
-      vect_V_max_[5] =	  10;//SDI_F->speedLimit * BASE_ROT_Z_MAXVEL	      ;
+      vect_V_max_[0] =	  SDI_F->speedLimit * BASE_LIN_X_MAXVEL	      ;
+      vect_V_max_[1] =	  SDI_F->speedLimit * BASE_LIN_Y_MAXVEL	      ;
+      vect_V_max_[2] =	  SDI_F->speedLimit * BASE_LIN_Z_MAXVEL	      ;
+      vect_V_max_[3] =	  SDI_F->speedLimit * BASE_ROT_X_MAXVEL	      ;
+      vect_V_max_[4] =	  SDI_F->speedLimit * BASE_ROT_Y_MAXVEL	      ;
+      vect_V_max_[5] =	  SDI_F->speedLimit * BASE_ROT_Z_MAXVEL	      ;
 
     case TORSO:
       vect_V_max_[0]=     SDI_F->speedLimit * TORSO_MAXVEL            ;
@@ -447,8 +446,16 @@ void ControllerAmbassador::setMaxVelVect()
       printf("ERROR: SetMaxVelVect: Unknown robot part.\n");
   }
 
-  for(int i=0; i< nbJoints_; ++i) {
-    vect_A_max_[i] = accVelRatio_ * vect_V_max_[i];
-    vect_J_max_[i] = jerkAccRatio_ * vect_A_max_[i];
+  if(robotPart_ == BASE) {
+      for(int i=0; i< nbJoints_; ++i) {
+	vect_A_max_[i] = 0.2;
+	vect_J_max_[i] = 0.6;
+      }
+  }
+  else {
+      for(int i=0; i< nbJoints_; ++i) {
+	vect_A_max_[i] = accVelRatio_ * vect_V_max_[i];
+	vect_J_max_[i] = jerkAccRatio_ * vect_A_max_[i];
+      }
   }
 }

@@ -333,17 +333,13 @@ pr2SoftMotionTrackQMain(PR2SM_TRACK_STR *trackStr, int *report)
 		torsoAmbassador->monitorTraj() ;
       break;
     case PR2FULL: 
-      // we wait for all parts to finish
-      //finished= baseAmbassador->monitorTraj() &&  
-      //          headAmbassador->monitorTraj() && 
-      //          torsoAmbassador->monitorTraj() &&
-      //          rArmAmbassador->monitorTraj() &&
-      //          lArmAmbassador->monitorTraj();
-      
-      finished=  headAmbassador->monitorTraj() && 
-	torsoAmbassador->monitorTraj() &&
-	rArmAmbassador->monitorTraj() &&
-	lArmAmbassador->monitorTraj();
+      //we wait for all parts to finish
+      finished= baseAmbassador->monitorTraj() &&  
+                headAmbassador->monitorTraj() && 
+                torsoAmbassador->monitorTraj() &&
+                rArmAmbassador->monitorTraj() &&
+                lArmAmbassador->monitorTraj();
+     finished= true;
       break;
 
     default:

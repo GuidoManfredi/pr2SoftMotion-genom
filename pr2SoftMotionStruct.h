@@ -34,15 +34,15 @@
 #include "pr2SoftMotionConst.h"
 
 typedef enum PR2SM_ROBOT_PART_ENUM {
-  PR2,
   PR2SYN,
   TORSO,
   HEAD,
   RARM,
   LARM,
-  ARMS,
-  PR2NOHEAD,
   BASE,
+  ARMS,
+  PR2,
+  PR2NOHEAD,
   PR2FULL
 } PR2SM_ROBOT_PART_ENUM;
 
@@ -114,6 +114,6 @@ typedef struct PR2SM_gripperSensorTresh {
 } PR2SM_gripperSensorTresh;
 
 typedef struct PR2SM_timeScale {
-  double timescale[5];
+  double timescale[6];
 } PR2SM_timeScale;
 #endif
