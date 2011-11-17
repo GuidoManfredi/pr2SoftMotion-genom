@@ -99,10 +99,14 @@ pr2SoftMotionMainPerm(int *report)
       *report =  S_pr2SoftMotion_CANNOT_READ_POSTER;
     }
     // there are 5 groups
-    for(int i=0; i<5; ++i)
+    for(int i=0; i<5; ++i) {
       SDI_F->timeScale.timescale[i] = SDI_F->humanDist.costDistRobToHum;
+    }
+
+    //printf("SDI_F->humanDist.costDistRobToHum %f\n",SDI_F->humanDist.costDistRobToHum);
+
   }
-  baseAmbassador->publishTimeScale();
+  //baseAmbassador->publishTimeScale();
   torsoAmbassador->publishTimeScale();
   headAmbassador->publishTimeScale();
   rArmAmbassador->publishTimeScale();
@@ -297,7 +301,6 @@ pr2SoftMotionTrackQMain(PR2SM_TRACK_STR *trackStr, int *report)
   switch(trackStr->robotPart){
     case BASE:
       finished= baseAmbassador->monitorTraj();
-      finished= true;
       break;
     case HEAD:
       finished= headAmbassador->monitorTraj();
@@ -339,7 +342,7 @@ pr2SoftMotionTrackQMain(PR2SM_TRACK_STR *trackStr, int *report)
                 torsoAmbassador->monitorTraj() &&
                 rArmAmbassador->monitorTraj() &&
                 lArmAmbassador->monitorTraj();
-     finished= true;
+      //finished= true;
       break;
 
     default:
