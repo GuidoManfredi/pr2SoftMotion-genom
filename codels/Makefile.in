@@ -56,7 +56,9 @@ EXTRA_INCLUDES += \
   -I/u/gmanfred/ros_overlay/release/soft_controllers/soft_move_base/msg_gen/cpp/include \
   -I/u/gmanfred/ros_overlay/release/soft_controllers/soft_move_base/include \
   -I/u/gmanfred/ros_overlay/release/soft_controllers/pr2_soft_controller/include \
-  -I/u/gmanfred/ros_overlay/release/soft_controllers/pr2_soft_controller/msg_gen/cpp/include 
+  -I/u/gmanfred/ros_overlay/release/soft_controllers/pr2_soft_controller/msg_gen/cpp/include \
+  -I/u/gmanfred/ros_overlay/release/soft_controllers/head_tracking_soft_controller/include \
+  -I/u/gmanfred/ros_overlay/release/soft_controllers/head_tracking_soft_controller/msg_gen/cpp/include 
 
 
 #

@@ -43,6 +43,7 @@
 #include "softMotion/softMotion.h"
 #include "ControllerAmbassador.h"
 #include "GripperSensorMonitor.h"
+#include "head_tracking_soft_controller/PanTilt.h"
 
 static POSTER_ID pr2Trackposter = NULL; /* the poster with a trajectyory to execute */ 
 static POSTER_ID posterHumDistId = NULL; /* the poster with the human distance */
@@ -56,8 +57,7 @@ static ControllerAmbassador* rArmAmbassador;
 static ControllerAmbassador* lArmAmbassador; 
 static ControllerAmbassador* pr2SynAmbassador; 
 
-static ros::Publisher pan_head_pub;
-static ros::Publisher tilt_head_pub;
+static ros::Publisher head_tracking_pub;
 
 static GripperSensorMonitor* r_gripperSensorMonitor;
 
@@ -166,8 +166,7 @@ pr2SoftMotionInitMain(int *report)
 
   SDI_F->isInit = GEN_TRUE;
 
-  pan_head_pub= nh->advertise<std_msgs::Float64>("pan_head_soft_controller/command", 1);
-  tilt_head_pub= nh->advertise<std_msgs::Float64>("tilt_head_soft_controller/command", 1);
+  head_tracking_pub= nh->advertise<head_tracking_soft_controller::PanTilt>("head_tracking_soft_controller/command", 1);
 
   if(pr2SoftMotionSM_TRAJ_STRPosterFind ("mhpArmTraj", &pr2Trackposter) != OK) {
     *report = S_pr2SoftMotion_POSTER_NOT_FOUND;
@@ -336,13 +335,11 @@ pr2SoftMotionTrackQMain(PR2SM_TRACK_STR *trackStr, int *report)
 		torsoAmbassador->monitorTraj() ;
       break;
     case PR2FULL: 
-      //we wait for all parts to finish
       finished= baseAmbassador->monitorTraj() &&  
                 headAmbassador->monitorTraj() && 
                 torsoAmbassador->monitorTraj() &&
                 rArmAmbassador->monitorTraj() &&
                 lArmAmbassador->monitorTraj();
-      //finished= true;
       break;
 
     default:
@@ -554,7 +551,7 @@ ACTIVITY_EVENT
 pr2SoftMotionMoveHeadStart(PR2SM_xyzHead *xyzHead, int *report)
 {
   tf::TransformListener listener;
-  std_msgs::Float64 pan, tilt;
+  head_tracking_soft_controller::PanTilt headMotion;
   //transforming point into robot frame
   geometry_msgs::PointStamped goal;
   geometry_msgs::PointStamped goalRobotFrame;
@@ -581,12 +578,11 @@ pr2SoftMotionMoveHeadStart(PR2SM_xyzHead *xyzHead, int *report)
   listener.transformPoint("base_footprint", goal, goalRobotFrame);
   listener.transformPoint("head_pan_link", goal, goalPanFrame);
 
-  pan.data= atan2(goalRobotFrame.point.y, goalRobotFrame.point.x);
-  tilt.data= atan2(-goalPanFrame.point.z, sqrt(pow(goalPanFrame.point.x,2)+pow(goalPanFrame.point.y,2)));
+  headMotion.data[0] = atan2(goalRobotFrame.point.y, goalRobotFrame.point.x);
+  headMotion.data[1] = atan2(-goalPanFrame.point.z, sqrt(pow(goalPanFrame.point.x,2)+pow(goalPanFrame.point.y,2)));
 
   //printf("%f %f\n", pan, tilt);
-  pan_head_pub.publish(pan);
-  tilt_head_pub.publish(tilt);
+  head_tracking_pub.publish(headMotion);
 
   return EXEC;
 }
@@ -682,7 +678,7 @@ ACTIVITY_EVENT
 pr2SoftMotionHeadTrackMain(PR2SM_xyzHead *xyzHead, int *report)
 {
   tf::TransformListener listener;
-  std_msgs::Float64 pan, tilt;
+  head_tracking_soft_controller::PanTilt headMotion;
   //transforming point into robot frame
   geometry_msgs::PointStamped goal;
   geometry_msgs::PointStamped goalRobotFrame;
@@ -709,12 +705,11 @@ pr2SoftMotionHeadTrackMain(PR2SM_xyzHead *xyzHead, int *report)
   listener.transformPoint("base_footprint", goal, goalRobotFrame);
   listener.transformPoint("head_pan_link", goal, goalPanFrame);
 
-  pan.data = atan2(goalRobotFrame.point.y, goalRobotFrame.point.x);
-  tilt.data = atan2(-goalPanFrame.point.z, sqrt(pow(goalPanFrame.point.x,2)+pow(goalPanFrame.point.y,2)));
+  headMotion.data[0] = atan2(goalRobotFrame.point.y, goalRobotFrame.point.x);
+  headMotion.data[1] = atan2(-goalPanFrame.point.z, sqrt(pow(goalPanFrame.point.x,2)+pow(goalPanFrame.point.y,2)));
 
   //printf("%f %f\n", pan, tilt);
-  pan_head_pub.publish(pan);
-  tilt_head_pub.publish(tilt);
+  head_tracking_pub.publish(headMotion);
 
   return EXEC;
 
