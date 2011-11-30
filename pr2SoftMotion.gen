@@ -82,6 +82,7 @@ typedef struct PR2SOFTMOTION_STR {
     double jerkAccelerationRatio;
     PR2SM_QSTR qGoto;
     PR2SM_xyzHead xyzHead;
+    PR2SM_PanTilt panTilt;	  
     PR2SM_gripperGrabRelease grabRelease;
     PR2SM_gripperSensorTresh sensorTresholds;
     GENHUM_HUMAN_DISTANCE humanDist;
@@ -209,6 +210,18 @@ request MoveHead {
     codel_end:		    pr2SoftMotionMoveHeadEnd;
     fail_reports:           NOT_INITIALIZED, SOFTMOTION_ERROR; 
     interrupt_activity:	    MoveHead; 
+};
+
+request GetPanTiltFromXYZ {
+    doc:		    "Get pan tilt to look at given x y z";
+    type:		    exec;
+    exec_task:		    Main; 
+    input:		    xyzHead::xyzHead; 
+    input_info:		    0::"x", 0::"y", 0::"z", "/map"::"frame"; 
+    output:		    panTilt:panTilt;
+    codel_main:		    pr2SoftMotionMoveHeadMain;
+    fail_reports:           NOT_INITIALIZED, SOFTMOTION_ERROR; 
+    interrupt_activity:	    GetPanTiltFromXYZ; 
 };
 
 request GripperGrabRelease {

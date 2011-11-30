@@ -105,6 +105,11 @@ typedef struct PR2SM_xyzHead {
   char frame[56];
 } PR2SM_xyzHead;
 
+typedef struct PR2SM_PanTilt {
+  double pan;
+  double tilt;
+} PR2SM_PanTilt;
+
 typedef struct PR2SM_gripperSensorTresh {
   double grabAcc;
   double grabSlip;
