@@ -618,48 +618,6 @@ pr2SoftMotionMoveHeadEnd(PR2SM_xyzHead *xyzHead, int *report)
  *              S_pr2SoftMotion_NOT_INITIALIZED
  *              S_pr2SoftMotion_SOFTMOTION_ERROR
  */
-/* pr2SoftMotionGetPanTiltFromXYZStart  -  codel START of GetPanTiltFromXYZ
-   Returns:  START EXEC END ETHER FAIL ZOMBIE */
-ACTIVITY_EVENT
-pr2SoftMotionGetPanTiltFromXYZStart(PR2SM_xyzHead *xyzHead, int *report)
-{
-  tf::TransformListener listener;
-  std_msgs::Float64 pan, tilt;
-  //transforming point into robot frame
-  geometry_msgs::PointStamped goal;
-  geometry_msgs::PointStamped goalRobotFrame;
-  geometry_msgs::PointStamped goalPanFrame;
-
-  goal.header.stamp= ros::Time(0);
-  goal.header.frame_id= xyzHead->frame;
-  goal.point.x= xyzHead->x;
-  goal.point.y= xyzHead->y;
-  goal.point.z= xyzHead->z;
-
-  try
-  {
-    //wait for the listener to get the first message
-    listener.waitForTransform(xyzHead->frame, "base_footprint", ros::Time(0), ros::Duration(1.0));
-    listener.waitForTransform(xyzHead->frame, "head_pan_link", ros::Time(0), ros::Duration(1.0));
-  }
-  catch (tf::TransformException ex)
-  {
-    ROS_ERROR("%s",ex.what());
-    return ETHER;
-  }
-
-  listener.transformPoint("base_footprint", goal, goalRobotFrame);
-  listener.transformPoint("head_pan_link", goal, goalPanFrame);
-
-  pan.data= atan2(goalRobotFrame.point.y, goalRobotFrame.point.x);
-  tilt.data= atan2(-goalPanFrame.point.z, sqrt(pow(goalPanFrame.point.x,2)+pow(goalPanFrame.point.y,2)));
-
-  //printf("%f %f\n", pan, tilt);
-  pan_head_pub.publish(pan);
-  tilt_head_pub.publish(tilt);
-
-  return EXEC;
-}
 
 /* pr2SoftMotionGetPanTiltFromXYZMain  -  codel START of GetPanTiltFromXYZ
    Returns:  START EXEC END ETHER FAIL ZOMBIE */
@@ -694,8 +652,8 @@ pr2SoftMotionGetPanTiltFromXYZMain(PR2SM_xyzHead *xyzHead, PR2SM_PanTilt *panTil
   listener.transformPoint("base_footprint", goal, goalRobotFrame);
   listener.transformPoint("head_pan_link", goal, goalPanFrame);
 
-  panTilt.pan= atan2(goalRobotFrame.point.y, goalRobotFrame.point.x);
-  panTilt.tilt= atan2(-goalPanFrame.point.z, sqrt(pow(goalPanFrame.point.x,2)+pow(goalPanFrame.point.y,2)));
+  panTilt->pan= atan2(goalRobotFrame.point.y, goalRobotFrame.point.x);
+  panTilt->tilt= atan2(-goalPanFrame.point.z, sqrt(pow(goalPanFrame.point.x,2)+pow(goalPanFrame.point.y,2)));
 
   return ETHER;
 }

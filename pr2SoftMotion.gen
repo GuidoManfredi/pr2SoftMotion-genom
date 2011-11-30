@@ -218,8 +218,8 @@ request GetPanTiltFromXYZ {
     exec_task:		    Main; 
     input:		    xyzHead::xyzHead; 
     input_info:		    0::"x", 0::"y", 0::"z", "/map"::"frame"; 
-    output:		    panTilt:panTilt;
-    codel_main:		    pr2SoftMotionMoveHeadMain;
+    output:		    panTilt::panTilt;
+    codel_main:		    pr2SoftMotionGetPanTiltFromXYZMain;
     fail_reports:           NOT_INITIALIZED, SOFTMOTION_ERROR; 
     interrupt_activity:	    GetPanTiltFromXYZ; 
 };
