@@ -27,55 +27,54 @@ codels_src = \
 
 # Add extra flags for the preprocessor (external libraries, ...)
 EXTRA_INCLUDES += \
-  -I/opt/ros/diamondback/stacks/pr2_controllers/pr2_controllers_msgs/msg_gen/cpp/include \
-  -I/opt/ros/diamondback/stacks/ros_comm/clients/cpp/roscpp/include \
-  -I/opt/ros/diamondback/stacks/ros_comm/utilities/rostime/include \
-  -I/opt/ros/diamondback/stacks/ros_comm/tools/rosconsole/include \
-  -I/opt/ros/diamondback/stacks/ros_comm/clients/cpp/roscpp_serialization/include \
-  -I/opt/ros/diamondback/stacks/ros_comm/clients/cpp/roscpp_traits/include \
-  -I/opt/ros/diamondback/stacks/ros_comm/utilities/xmlrpcpp/src \
-  -I/opt/ros/diamondback/stacks/common_msgs/trajectory_msgs/msg_gen/cpp/include \
-  -I/opt/ros/diamondback/stacks/ros_comm/utilities/cpp_common/include \
-  -I/opt/ros/diamondback/stacks/common_msgs/geometry_msgs/msg_gen/cpp/include \
-  -I/opt/ros/diamondback/stacks/common_msgs/actionlib_msgs/msg_gen/cpp/include \
-  -I/opt/ros/diamondback/stacks/common/actionlib/include \
-  -I/opt/ros/diamondback/stacks/common/actionlib/msg/cpp \
-  -I/opt/ros/diamondback/stacks/pr2_controllers/pr2_mechanism_controllers/msg_gen/cpp/include \
-  -I/opt/ros/diamondback/stacks/pr2_controllers/pr2_mechanism_controllers/include \
-  -I/opt/ros/diamondback/stacks/ros_comm/messages/std_msgs/msg_gen/cpp/include \
-  -I/opt/ros/diamondback/stacks/ros_comm/messages/std_msgs/include \
-  -I/opt/ros/diamondback/stacks/geometry/tf/include \
-  -I/opt/ros/diamondback/stacks/common_msgs/sensor_msgs/msg_gen/cpp/include \
-  -I/opt/ros/diamondback/stacks/geometry/tf/msg_gen/cpp/include \
-  -I/opt/ros/diamondback/stacks/geometry/bullet/include \
-  -I/opt/ros/diamondback/stacks/geometry/tf/srv_gen/cpp/include \
-  -I/opt/ros/diamondback/stacks/pr2_controllers/pr2_controllers_msgs/srv_gen/cpp/include \
-  -I/opt/ros/diamondback/stacks/pr2_object_manipulation/pr2_gripper_sensor_msgs/msg_gen/cpp/include \
-  -I/opt/ros/diamondback/stacks/pr2_object_manipulation/pr2_gripper_sensor_msgs/msg_gen/cpp/include \
-  -I/opt/ros/diamondback/stacks/pr2_object_manipulation/pr2_gripper_sensor_msgs/msg_gen/cpp/include \
-  -I/u/gmanfred/ros_overlay/release/soft_controllers/soft_move_base/msg_gen/cpp/include \
-  -I/u/gmanfred/ros_overlay/release/soft_controllers/soft_move_base/include \
-  -I/u/gmanfred/ros_overlay/release/soft_controllers/pr2_soft_controller/include \
-  -I/u/gmanfred/ros_overlay/release/soft_controllers/pr2_soft_controller/msg_gen/cpp/include \
-  -I/u/gmanfred/ros_overlay/release/soft_controllers/head_tracking_soft_controller/include \
-  -I/u/gmanfred/ros_overlay/release/soft_controllers/head_tracking_soft_controller/msg_gen/cpp/include 
+  -I/opt/ros/electric/stacks/pr2_controllers/pr2_controllers_msgs/msg_gen/cpp/include \
+  -I/opt/ros/electric/stacks/ros_comm/clients/cpp/roscpp/include \
+  -I/opt/ros/electric/stacks/ros_comm/utilities/rostime/include \
+  -I/opt/ros/electric/stacks/ros_comm/tools/rosconsole/include \
+  -I/opt/ros/electric/stacks/ros_comm/clients/cpp/roscpp_serialization/include \
+  -I/opt/ros/electric/stacks/ros_comm/clients/cpp/roscpp_traits/include \
+  -I/opt/ros/electric/stacks/ros_comm/utilities/xmlrpcpp/src \
+  -I/opt/ros/electric/stacks/common_msgs/trajectory_msgs/msg_gen/cpp/include \
+  -I/opt/ros/electric/stacks/ros_comm/utilities/cpp_common/include \
+  -I/opt/ros/electric/stacks/common_msgs/geometry_msgs/msg_gen/cpp/include \
+  -I/opt/ros/electric/stacks/common_msgs/actionlib_msgs/msg_gen/cpp/include \
+  -I/opt/ros/electric/stacks/common/actionlib/include \
+  -I/opt/ros/electric/stacks/common/actionlib/msg/cpp \
+  -I/opt/ros/electric/stacks/pr2_controllers/pr2_mechanism_controllers/msg_gen/cpp/include \
+  -I/opt/ros/electric/stacks/pr2_controllers/pr2_mechanism_controllers/include \
+  -I/opt/ros/electric/stacks/ros_comm/messages/std_msgs/msg_gen/cpp/include \
+  -I/opt/ros/electric/stacks/ros_comm/messages/std_msgs/include \
+  -I/opt/ros/electric/stacks/geometry/tf/include \
+  -I/opt/ros/electric/stacks/common_msgs/sensor_msgs/msg_gen/cpp/include \
+  -I/opt/ros/electric/stacks/geometry/tf/msg_gen/cpp/include \
+  -I/opt/ros/electric/stacks/bullet/include \
+  -I/opt/ros/electric/stacks/geometry/tf/srv_gen/cpp/include \
+  -I/opt/ros/electric/stacks/pr2_controllers/pr2_controllers_msgs/srv_gen/cpp/include \
+  -I/opt/ros/electric/stacks/pr2_object_manipulation/manipulation/pr2_gripper_sensor_msgs/msg_gen/cpp/include \
+  -I/u/gmanfred/ros/release/soft_controllers/soft_move_base/msg_gen/cpp/include \
+  -I/u/gmanfred/ros/release/soft_controllers/soft_move_base/include \
+  -I/u/gmanfred/ros/release/soft_controllers/pr2_soft_controller/include \
+  -I/u/gmanfred/ros/release/soft_controllers/pr2_soft_controller/msg_gen/cpp/include \
+  -I/u/gmanfred/ros/release/soft_controllers/head_tracking_soft_controller/include \
+  -I/u/gmanfred/ros/release/soft_controllers/head_tracking_soft_controller/msg_gen/cpp/include 
 
 
 #
 # Add extra link flags (external libraries, ...)
 EXTRA_LIBS += \
-	-Wl,-rpath /opt/ros/cturtle/ros/core/roscpp/lib \
-	-Wl,-rpath /opt/ros/cturtle/ros/core/rosconsole/lib \
-	-Wl,-rpath /opt/ros/cturtle/ros/core/roslib/lib \
-	-Wl,-rpath,/opt/ros/cturtle/stacks/common/actionlib/lib \
-        -Wl,-rpath,/opt/ros/cturtle/stacks/geometry/tf/lib \
-	-Wl,-rpath,/opt/ros/cturtle/stacks/geometry/bullet/lib \
-        -Wl,-rpath,/opt/ros/diamondback/stacks/pr2_controllers/pr2_mechanism_controllers/lib \
-        -Wl,-rpath,/opt/ros/cturtle/stacks/pr2_controllers/robot_mechanism_controllers/lib \
-	-L/opt/ros/cturtle/ros/core/roscpp/lib -lros \
-	-L/opt/ros/cturtle/stacks/geometry/tf/lib -ltf \
-	-L/opt/ros/cturtle/stacks/geometry/bullet/lib -lLinearMath \
-	-L/opt/ros/cturtle/stacks/common/actionlib/lib -lactionlib
+	-Wl,-rpath /opt/ros/electric/stacks/ros_comm/clients/cpp/roscpp_serialization/lib \
+	-Wl,-rpath /opt/ros/electric/stacks/ros_comm/clients/cpp/roscpp/lib \
+	-Wl,-rpath /opt/ros/electric/stacks/ros_comm/tools/rosconsole/lib \
+	-Wl,-rpath /opt/ros/electric/ros/core/roslib/lib \
+	-Wl,-rpath,/opt/ros/electric/stacks/common/actionlib/lib \
+        -Wl,-rpath,/opt/ros/electric/stacks/geometry/tf/lib \
+	-Wl,-rpath,/opt/ros/electric/stacks/geometry/bullet/lib \
+        -Wl,-rpath,/opt/ros/electric/stacks/pr2_controllers/pr2_mechanism_controllers/lib \
+        -Wl,-rpath,/opt/ros/electric/stacks/pr2_controllers/robot_mechanism_controllers/lib \
+	-L/opt/ros/electric/ros/core/roslib/lib -lroslib \
+	-L/opt/ros/electric/stacks/geometry/tf/lib -ltf \
+	-L/opt/ros/electric/stacks/bullet/lib -lLinearMath \
+	-L/opt/ros/electric/stacks/common/actionlib/lib -lactionlib
 
 
 #
