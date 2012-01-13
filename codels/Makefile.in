@@ -23,41 +23,38 @@ codels_src = \
         ControllerAmbassador.cc \
         GripperSensorMonitor.cc
 
-#echo $(ROS_PACKAGE_PATH)
-
 # Add extra flags for the preprocessor (external libraries, ...)
 EXTRA_INCLUDES += \
-  -I/opt/ros/electric/stacks/pr2_controllers/pr2_controllers_msgs/msg_gen/cpp/include \
-  -I/opt/ros/electric/stacks/ros_comm/clients/cpp/roscpp/include \
-  -I/opt/ros/electric/stacks/ros_comm/utilities/rostime/include \
-  -I/opt/ros/electric/stacks/ros_comm/tools/rosconsole/include \
-  -I/opt/ros/electric/stacks/ros_comm/clients/cpp/roscpp_serialization/include \
-  -I/opt/ros/electric/stacks/ros_comm/clients/cpp/roscpp_traits/include \
-  -I/opt/ros/electric/stacks/ros_comm/utilities/xmlrpcpp/src \
-  -I/opt/ros/electric/stacks/common_msgs/trajectory_msgs/msg_gen/cpp/include \
-  -I/opt/ros/electric/stacks/ros_comm/utilities/cpp_common/include \
-  -I/opt/ros/electric/stacks/common_msgs/geometry_msgs/msg_gen/cpp/include \
-  -I/opt/ros/electric/stacks/common_msgs/actionlib_msgs/msg_gen/cpp/include \
-  -I/opt/ros/electric/stacks/common/actionlib/include \
-  -I/opt/ros/electric/stacks/common/actionlib/msg/cpp \
-  -I/opt/ros/electric/stacks/pr2_controllers/pr2_mechanism_controllers/msg_gen/cpp/include \
-  -I/opt/ros/electric/stacks/pr2_controllers/pr2_mechanism_controllers/include \
-  -I/opt/ros/electric/stacks/ros_comm/messages/std_msgs/msg_gen/cpp/include \
-  -I/opt/ros/electric/stacks/ros_comm/messages/std_msgs/include \
-  -I/opt/ros/electric/stacks/geometry/tf/include \
-  -I/opt/ros/electric/stacks/common_msgs/sensor_msgs/msg_gen/cpp/include \
-  -I/opt/ros/electric/stacks/geometry/tf/msg_gen/cpp/include \
-  -I/opt/ros/electric/stacks/bullet/include \
-  -I/opt/ros/electric/stacks/geometry/tf/srv_gen/cpp/include \
-  -I/opt/ros/electric/stacks/pr2_controllers/pr2_controllers_msgs/srv_gen/cpp/include \
-  -I/opt/ros/electric/stacks/pr2_object_manipulation/manipulation/pr2_gripper_sensor_msgs/msg_gen/cpp/include \
-  -I/u/gmanfred/ros/release/soft_controllers/soft_move_base/msg_gen/cpp/include \
-  -I/u/gmanfred/ros/release/soft_controllers/soft_move_base/include \
-  -I/u/gmanfred/ros/release/soft_controllers/pr2_soft_controller/include \
-  -I/u/gmanfred/ros/release/soft_controllers/pr2_soft_controller/msg_gen/cpp/include \
-  -I/u/gmanfred/ros/release/soft_controllers/head_tracking_soft_controller/include \
-  -I/u/gmanfred/ros/release/soft_controllers/head_tracking_soft_controller/msg_gen/cpp/include 
-
+  -I$(shell rospack find roscpp)/include \
+  -I$(shell rospack find rostime)/include \
+  -I$(shell rospack find rosconsole)/include \
+  -I$(shell rospack find roscpp_serialization)/include \
+  -I$(shell rospack find roscpp_trait)/include \
+  -I$(shell rospack find xmlrpcpp)/src \
+  -I$(shell rospack find trajectory_msgs)/msg_gen/cpp/include \
+  -I$(shell rospack find cpp_common)/include \
+  -I$(shell rospack find geometry_msgs)/msg_gen/cpp/include \
+  -I$(shell rospack find actionlib_msgs)/msg_gen/cpp/include \
+  -I$(shell rospack find actionlib)/include \
+  -I$(shell rospack find actionlib)/msg_gen/cpp/include \
+  -I$(shell rospack find pr2_mechanism_controllers)/include \
+  -I$(shell rospack find pr2_mechanism_controllers)/msg_gen/cpp/include \
+  -I$(shell rospack find std_msgs)/include \
+  -I$(shell rospack find std_msgs)/msg_gen/cpp/include \
+  -I$(shell rospack find sensor_msgs)/include \
+  -I$(shell rospack find bullet)/include \
+  -I$(shell rospack find tf)/include \
+  -I$(shell rospack find tf)/srv_gen/cpp/include \
+  -I$(shell rospack find tf)/msg_gen/cpp/include \
+  -I$(shell rospack find pr2_controllers_msgs)/srv_gen/cpp/include \
+  -I$(shell rospack find pr2_controllers_msgs)/msg_gen/cpp/include \
+  -I$(shell rospack find pr2_gripper_sensor_msgs)/msg_gen/cpp/include \
+  -I$(shell rospack find soft_move_base)/include \
+  -I$(shell rospack find soft_move_base)/msg_gen/cpp/include \
+  -I$(shell rospack find pr2_soft_controller)/include \
+  -I$(shell rospack find pr2_soft_controller)/msg_gen/cpp/include \
+  -I$(shell rospack find head_tracking_soft_controller)/include \
+  -I$(shell rospack find head_tracking_soft_controller)/msg_gen/cpp/include
 
 #
 # Add extra link flags (external libraries, ...)
